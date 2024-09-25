@@ -7,7 +7,7 @@ import { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 
-export default function HomeProducts() {
+export default function Products(props: { isOrderPage?: boolean }) {
   const { user } = useSelector((state: RootState) => state.user);
 
   const [products, setProducts] = useState([
@@ -22,6 +22,7 @@ export default function HomeProducts() {
       count: 0,
     },
   ]);
+  const [styles, setStyles] = useState({} as any);
 
   useEffect(() => {
     if (user?.cart) {
@@ -39,6 +40,14 @@ export default function HomeProducts() {
       ]);
     }
   }, [user?.cart]);
+
+  useEffect(() => {
+    if (props.isOrderPage) {
+      setStyles(orderStyles);
+    } else {
+      setStyles(productStyles);
+    }
+  }, [props.isOrderPage]);
 
   async function updateCart(item: string, method: "add" | "minus") {
     await useHttp
@@ -67,49 +76,43 @@ export default function HomeProducts() {
 
   return (
     <View style={productStyles.products}>
-      <Text style={productStyles.title}>Товары</Text>
-      <View style={{ width: "100%", marginTop: 15, gap: 15 }}>
+      <Text style={styles.title}>Товары</Text>
+      <View style={styles.block}>
         {products.map((product, index) => (
-          <View key={index} style={productStyles.one}>
-            <View
-              style={{
-                width: 111,
-                height: 111,
-                borderRadius: 19,
-                padding: 10,
-                backgroundColor: Colors.background,
-                position: "relative",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
+          <View key={index} style={styles.one}>
+            <View style={styles.image}>
               <Image
-                source={require("../../assets/images/su.png")}
+                source={require("../../assets/images/smallSu.png")}
                 style={{
-                  objectFit: "cover",
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "contain",
                 }}
               />
             </View>
-            <View style={productStyles.right}>
+            <View style={styles.right}>
               <View>
-                <Text style={productStyles.productName}>{product.name}</Text>
-                <Text style={productStyles.productDesc}>негазированная</Text>
+                <Text style={styles.productName}>{product.name}</Text>
+                <Text style={styles.productDesc}>негазированная</Text>
               </View>
               {product.count > 0 ? (
-                <View style={productStyles.oneCart}>
+                <View style={styles.oneCart}>
                   <View style={productStyles.oneCartInner}>
                     <UIIcon name="cart" />
-                    <Text style={productStyles.count}>{product.count} шт</Text>
+                    <Text style={styles.count}>{product.count} шт</Text>
                   </View>
                   <View style={productStyles.oneCartInner}>
                     <Pressable
                       onPress={() => updateCart(product.item, "minus")}
-                      style={productStyles.cartButton}>
-                      <UIIcon name="minus" />
+                      style={styles.cartButton}>
+                      <UIIcon
+                        name={props.isOrderPage ? "smallMinus" : "minus"}
+                      />
                     </Pressable>
                     <Pressable
                       onPress={() => updateCart(product.item, "add")}
-                      style={productStyles.cartButton}>
-                      <UIIcon name="plus" />
+                      style={styles.cartButton}>
+                      <UIIcon name={props.isOrderPage ? "smallPlus" : "plus"} />
                     </Pressable>
                   </View>
                 </View>
@@ -140,6 +143,21 @@ const productStyles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.text,
     marginLeft: 15,
+  },
+  block: {
+    width: "100%",
+    marginTop: 15,
+    gap: 15,
+  },
+  image: {
+    width: 111,
+    height: 111,
+    borderRadius: 19,
+    padding: 10,
+    backgroundColor: Colors.background,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   one: {
     width: "100%",
@@ -200,5 +218,75 @@ const productStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
+  },
+});
+
+const orderStyles = StyleSheet.create({
+  title: {
+    display: "none",
+  },
+  block: {
+    width: "100%",
+    backgroundColor: Colors.darkWhite,
+    borderRadius: 10,
+    overflow: "hidden",
+    marginTop: 15,
+    padding: 10,
+    gap: 15,
+  },
+  one: {
+    width: "100%",
+    backgroundColor: Colors.darkWhite,
+    overflow: "hidden",
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "stretch",
+    justifyContent: "space-between",
+  },
+  image: {
+    width: 46,
+    height: 46,
+    borderRadius: 10,
+    padding: 5,
+    backgroundColor: Colors.background,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  right: {
+    flexGrow: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 5,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: Colors.text,
+  },
+  productDesc: {
+    fontSize: 13,
+    fontWeight: "400",
+    color: Colors.gray,
+  },
+  count: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: Colors.text,
+  },
+  oneCart: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 5,
+    borderRadius: 19,
+  },
+  cartButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: Colors.background,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

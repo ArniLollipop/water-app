@@ -1,5 +1,5 @@
 import HomeCategories from "@/components/home/categories";
-import HomeProducts from "@/components/home/products";
+import Products from "@/components/home/products";
 import HomeRecent from "@/components/home/recent";
 import UIButton from "@/components/UI/Button";
 import Colors from "@/constants/Colors";
@@ -8,11 +8,14 @@ import { setCart } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Home() {
+  const router = useRouter();
+
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -46,10 +49,11 @@ export default function Home() {
         }}>
         <HomeRecent />
         <HomeCategories />
-        <HomeProducts />
+        <Products />
       </ScrollView>
       {user?.cart && user.cart.b12 > 0 && user.cart.b19 > 0 && (
         <UIButton
+          onPress={() => router.push("(modals)/order")}
           type="default"
           text="Заказать"
           styles={{

@@ -6,7 +6,7 @@ const UIRadio = (props: {
   withoutDot?: boolean;
   title?: string;
   items?: { id?: string; text: string }[];
-  addText: string;
+  addText?: string;
   setNew?: (value: boolean) => void;
 }) => {
   return (
@@ -70,26 +70,29 @@ const UIRadio = (props: {
               )}
             </TouchableOpacity>
           ))}
-        <TouchableOpacity
-          onPress={() => props.setNew && props.setNew(true)}
-          style={{
-            backgroundColor: Colors.background,
-            borderRadius: 10,
-            padding: 10,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-          <Text style={{ fontSize: 14, color: Colors.text }}>
-            {props.addText}
-          </Text>
-          <View
+
+        {props.addText && (
+          <TouchableOpacity
+            onPress={() => props.setNew && props.setNew(true)}
             style={{
-              paddingHorizontal: 5,
+              backgroundColor: Colors.background,
+              borderRadius: 10,
+              padding: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}>
-            <UIIcon name="smallPlus" />
-          </View>
-        </TouchableOpacity>
+            <Text style={{ fontSize: 14, color: Colors.text }}>
+              {props.addText}
+            </Text>
+            <View
+              style={{
+                paddingHorizontal: 5,
+              }}>
+              <UIIcon name="smallPlus" />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

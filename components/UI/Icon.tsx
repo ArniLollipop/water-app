@@ -468,16 +468,28 @@ export default function UIIcon(props: { name: string }) {
           />
         </Svg>
       );
+    case "smallMinus":
+      return (
+        <Svg width="15" height="2" viewBox="0 0 15 2" fill="none">
+          <Rect
+            x="20"
+            width="2"
+            height="20"
+            transform="rotate(90 20 0)"
+            fill="#606B85"
+          />
+        </Svg>
+      );
     case "smallPlus":
       return (
-        <Svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-          <Rect x="5" width="1" height="11" fill="#606B85" />
+        <Svg width="36" height="36" viewBox="0 0 42 42" fill="none">
+          <Rect x="20" y="12" width="2" height="19" fill="#606B85" />
           <Rect
-            x="11"
-            y="5"
-            width="1"
-            height="11"
-            transform="rotate(90 11 5)"
+            x="31"
+            y="20"
+            width="2"
+            height="20"
+            transform="rotate(90 31 20)"
             fill="#606B85"
           />
         </Svg>

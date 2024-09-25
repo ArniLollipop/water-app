@@ -4,6 +4,16 @@ export default function Layout() {
   return (
     <Stack>
       <Stack.Screen
+        name="order"
+        options={{
+          headerBackButtonMenuEnabled: true,
+          headerShown: true,
+          headerShadowVisible: false,
+          headerTitle: "Оформление заказа",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen
         name="settings"
         options={{
           headerBackButtonMenuEnabled: true,

@@ -11,6 +11,8 @@ interface IUser {
   mail?: string;
   subscription?: string;
   addresses?: IAddress[];
+  opForm?: "card" | "cash" | "online";
+  chooseTime?: boolean;
   cart?: {
     b12: number;
     b19: number;
