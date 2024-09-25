@@ -39,6 +39,10 @@ export default function Home() {
     if (user?.mail) getCart();
   }, [user?.mail]);
 
+  const isButtonVisible = () => {
+    return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
+  };
+
   return (
     <View style={sharedStyles.container}>
       <ScrollView
@@ -51,7 +55,7 @@ export default function Home() {
         <HomeCategories />
         <Products />
       </ScrollView>
-      {user?.cart && user.cart.b12 > 0 && user.cart.b19 > 0 && (
+      {isButtonVisible() && (
         <UIButton
           onPress={() => router.push("(modals)/order")}
           type="default"

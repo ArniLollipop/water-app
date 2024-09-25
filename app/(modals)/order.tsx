@@ -1,23 +1,32 @@
 import Products from "@/components/home/products";
 import UIRadio from "@/components/UI/Radio";
+import UITimePickerModal from "@/components/UI/TimePicker";
 import Colors from "@/constants/Colors";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { useSelector } from "react-redux";
 
 const Order = () => {
   const { user } = useSelector((state: RootState) => state.user);
 
   const [addresses, setAddresses] = useState([] as IAddress[]);
+  const [prices, setPrices] = useState({});
+
+  const getUser = async () => {
+    await useHttp
+      .post<{ clientData: { _doc: IUser }; success: true }>(
+        "/getClientDataMobile",
+        {
+          mail: user?.mail,
+        }
+      )
+      .then((res) => {
+        console.log(res.data.clientData);
+      });
+  };
 
   const getAddresses = async () => {
     await useHttp
@@ -40,6 +49,7 @@ const Order = () => {
 
   useEffect(() => {
     getAddresses();
+    getUser();
   }, []);
 
   return (
@@ -96,49 +106,7 @@ const Order = () => {
               }}>
               Время доставки
             </Text>
-            <ScrollView bounces={false} horizontal={true}>
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                {/* days today, tommorow, after tomorrow for choose date in Russian locales*/}
-                {/* hours from 10:00 to 20:00 */}
-
-                {["Сегодня", "Завтра", "Послезавтра"].map((i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={{
-                      backgroundColor: Colors.background,
-                      borderRadius: 10,
-                      padding: 10,
-                    }}>
-                    <Text style={{ fontSize: 14, color: Colors.text }}>
-                      {i}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-            <ScrollView
-              bounces={false}
-              horizontal={true}
-              style={{ marginTop: 10 }}>
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                {/* days today, tommorow, after tomorrow for choose date in Russian locales*/}
-                {/* hours from 10:00 to 20:00 */}
-
-                {[...Array(10).keys()].map((i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={{
-                      backgroundColor: Colors.background,
-                      borderRadius: 10,
-                      padding: 10,
-                    }}>
-                    <Text style={{ fontSize: 14, color: Colors.text }}>
-                      {i + 10}:00
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            <UITimePickerModal minDate={new Date()} />
           </View>
         )}
       </ScrollView>

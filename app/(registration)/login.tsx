@@ -41,7 +41,6 @@ export default function Login() {
         router.push("/(tabs)");
       })
       .catch((err) => {
-        console.log(err.status);
         dispatch(
           setError({
             error: true,

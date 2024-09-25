@@ -10,6 +10,7 @@ import {
 import { useRef } from "react";
 
 interface UIInputProps extends TextInputProps {
+  isLink?: boolean;
   label?: string;
   type?: "filled" | "outlined";
   rightElement?: React.ReactNode;
@@ -49,6 +50,12 @@ export default function UIInput(props: UIInputProps) {
             fontFamily: "Roboto",
             borderRadius: 8,
             fontSize: 16,
+            color: props.isLink
+              ? Colors.blue
+              : props.type == "filled"
+              ? inputStyles[props.type].color
+              : Colors.text,
+            textDecorationLine: props.isLink ? "underline" : "none",
           }}
           {...props}
         />

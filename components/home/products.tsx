@@ -4,10 +4,12 @@ import UIIcon from "../UI/Icon";
 import UIButton from "../UI/Button";
 import useHttp from "@/utils/axios";
 import { RootState } from "@/store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { setCart } from "@/store/slices/userSlice";
 
 export default function Products(props: { isOrderPage?: boolean }) {
+  const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
   const [products, setProducts] = useState([
@@ -49,27 +51,24 @@ export default function Products(props: { isOrderPage?: boolean }) {
     }
   }, [props.isOrderPage]);
 
-  async function updateCart(item: string, method: "add" | "minus") {
+  async function updateCart(item: "b12" | "b19", method: "add" | "minus") {
     await useHttp
       .post<{ success: boolean }>("/updateCart", {
-        mail: "bocunahero@gmail.com",
+        mail: user?.mail,
         product: item,
         method,
       })
       .then((res) => {
-        if (res.data.success) {
-          setProducts((prev) => {
-            let newProducts = [...prev];
-            let index = newProducts.findIndex(
-              (product) => product.item === item
-            );
-            if (method === "add") {
-              newProducts[index].count++;
-            } else {
-              newProducts[index].count--;
-            }
-            return newProducts;
-          });
+        if (res.data.success && user?.cart) {
+          dispatch(
+            setCart({
+              cart: {
+                ...user.cart,
+                [item]:
+                  method === "add" ? user.cart[item] + 1 : user.cart[item] - 1,
+              },
+            })
+          );
         }
       });
   }
@@ -95,7 +94,7 @@ export default function Products(props: { isOrderPage?: boolean }) {
                 <Text style={styles.productName}>{product.name}</Text>
                 <Text style={styles.productDesc}>негазированная</Text>
               </View>
-              {product.count > 0 ? (
+              {props.isOrderPage || product.count > 0 ? (
                 <View style={styles.oneCart}>
                   <View style={productStyles.oneCartInner}>
                     <UIIcon name="cart" />

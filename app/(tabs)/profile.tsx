@@ -55,7 +55,10 @@ export default function Profile() {
         setFirstAddress(
           res.data.clientData._doc?.addresses
             ? res.data.clientData._doc.addresses[0]
-            : ({} as IAddress)
+            : ({
+                street: "",
+                house: "",
+              } as IAddress)
         );
       });
   };

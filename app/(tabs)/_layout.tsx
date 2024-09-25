@@ -10,6 +10,7 @@ import { setUser } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import * as SecureStore from "expo-secure-store";
 import parseJwt from "@/utils/parseJwt";
+import useHttp from "@/utils/axios";
 
 export default function TabLayout() {
   const segments = useSegments();

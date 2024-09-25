@@ -28,7 +28,15 @@ export default function Login() {
   });
 
   const handleRegister = async () => {
-    if (formData.password !== formData.repeatPassword) return;
+    if (formData.password !== formData.repeatPassword) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "Пароли не совпадают",
+        })
+      );
+      return;
+    }
 
     setLoading(true);
     await useHttp

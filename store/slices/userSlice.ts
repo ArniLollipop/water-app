@@ -8,17 +8,18 @@ const userSlice = createSlice({
   reducers: {
     setUser: (state, action: { payload: IUser | null }) => {
       state.user = action.payload;
-      return state;
     },
     setCart: (state, action: { payload: ICart }) => {
       if (state.user) {
-        state.user.cart = action.payload.cart;
-        return state;
+        // Spread the current state of the user, and create a new cart object
+        state.user = {
+          ...state.user,
+          cart: { ...action.payload.cart },
+        };
       }
     },
   },
 });
 
 export const { setUser, setCart } = userSlice.actions;
-
 export default userSlice.reducer;

@@ -4,13 +4,13 @@ import parseJwt from "./parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { setError } from "@/store/slices/errorSlice";
 import store from "@/store/store";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 
 let token = "" as string | null;
 let refreshToken = "" as string | null;
 
 const useHttp = axios.create({
-  baseURL: "http://192.168.191.48:4444/",
+  baseURL: "http://192.168.0.135:4444/",
   headers: {
     "Content-Type": "application/json",
     authorization: "Bearer " + token,
@@ -22,16 +22,18 @@ const useHttp = axios.create({
   refreshToken = await SecureStore.getItemAsync("refreshToken");
 })();
 
+let isRetrying = false;
+
 useHttp.interceptors.response.use(null, async (error) => {
   const originalRequest = error.config;
-  const router = useRouter();
 
   if (
     error.response?.status === 403 &&
-    !originalRequest._retry &&
-    refreshToken
+    !isRetrying &&
+    refreshToken &&
+    !error.config.url.includes("refreshToken")
   ) {
-    originalRequest._retry = true;
+    isRetrying = true;
     await useHttp
       .post<{ accessToken: string; refreshToken: string }>("/refreshToken", {
         refreshToken,
@@ -48,9 +50,10 @@ useHttp.interceptors.response.use(null, async (error) => {
 
         originalRequest.headers.Authorization = "Bearer " + token;
 
-        return useHttp(originalRequest, res.data.accessToken as any);
+        return await useHttp.request(originalRequest);
       })
       .catch(async () => {
+        console.log("все плохо");
         await SecureStore.setItemAsync("token", "");
         await SecureStore.setItemAsync("refreshToken", "");
         store.dispatch(
@@ -58,6 +61,7 @@ useHttp.interceptors.response.use(null, async (error) => {
         );
         store.dispatch(setUser(null));
         router.push("(registration)/login");
+        throw error;
       });
   }
   throw error;

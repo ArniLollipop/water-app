@@ -7,7 +7,7 @@ import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Keyboard, Linking, ScrollView, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 const Address = () => {
@@ -78,69 +78,92 @@ const Address = () => {
       }));
   };
 
+  const routeByLink = (e: any) => {
+    Keyboard.dismiss();
+    if (newAddress.link && newAddress.link.length > 0) {
+      Linking.openURL(newAddress.link);
+    }
+  };
+
   useEffect(() => {
     getAddresses();
   }, []);
 
   return (
     <View style={sharedStyles.container}>
-      <UIRadio
-        withoutDot={true}
-        items={getFormattedAddresses(addresses)}
-        setNew={setIsAdding}
-        addText="Добавить адрес"
-      />
-      {isAdding && (
-        <View style={{ width: "100%", marginVertical: 20, gap: 10 }}>
-          <Text style={{ fontSize: 20, color: Colors.text, fontWeight: "500" }}>
-            Новый адрес
-          </Text>
-          <UIInput
-            type="filled"
-            placeholder="Город"
-            value={newAddress.city}
-            onChangeText={(text) =>
-              setNewAddress({
-                ...newAddress,
-                city: text,
-              })
-            }
-          />
-          <UIInput
-            type="filled"
-            placeholder="Улица *"
-            value={newAddress.street}
-            onChangeText={(text) =>
-              setNewAddress({
-                ...newAddress,
-                street: text,
-                link: generate2GISLink(text),
-              })
-            }
-          />
-          <UIInput
-            type="filled"
-            placeholder="Квартира/офис"
-            value={newAddress.house}
-            onChangeText={(text) =>
-              setNewAddress({ ...newAddress, house: text })
-            }
-          />
-          <UIInput type="filled" placeholder="Cсылка" value={newAddress.link} />
-          <Text style={{ fontSize: 13, color: Colors.disabled }}>
-            Сгенерируйте ссылку по карте 2ГИС и проверьте правильно ли написан
-            адрес.
-          </Text>
+      <ScrollView
+        bounces={false}
+        style={{
+          width: "100%",
+          paddingBottom: 15,
+          backgroundColor: Colors.background,
+        }}>
+        <UIRadio
+          withoutDot={true}
+          items={getFormattedAddresses(addresses)}
+          setNew={setIsAdding}
+          addText="Добавить адрес"
+        />
+        {isAdding && (
+          <View style={{ width: "100%", marginVertical: 20, gap: 10 }}>
+            <Text
+              style={{ fontSize: 20, color: Colors.text, fontWeight: "500" }}>
+              Новый адрес
+            </Text>
+            <UIInput
+              type="filled"
+              placeholder="Город"
+              value={newAddress.city}
+              onChangeText={(text) =>
+                setNewAddress({
+                  ...newAddress,
+                  city: text,
+                })
+              }
+            />
+            <UIInput
+              type="filled"
+              placeholder="Улица и номер дома"
+              value={newAddress.street}
+              onChangeText={(text) =>
+                setNewAddress({
+                  ...newAddress,
+                  street: text,
+                  link: generate2GISLink(text),
+                })
+              }
+            />
+            <UIInput
+              type="filled"
+              placeholder="Квартира/офис"
+              value={newAddress.house}
+              onChangeText={(text) =>
+                setNewAddress({ ...newAddress, house: text })
+              }
+            />
+            <UIInput
+              focusable={false}
+              isLink={true}
+              onPress={routeByLink}
+              type="filled"
+              placeholder="Cсылка"
+              value={newAddress.link}
+            />
+            <Text style={{ fontSize: 13, color: Colors.disabled }}>
+              Сгенерируйте ссылку по карте 2ГИС и проверьте правильно ли написан
+              адрес.
+            </Text>
 
-          <UIButton
-            isLoading={isLoading}
-            onPress={addClientAddress}
-            type="default"
-            text="Добавить"
-            styles={{ marginTop: 10 }}
-          />
-        </View>
-      )}
+            <UIButton
+              isLoading={isLoading}
+              onPress={addClientAddress}
+              type="default"
+              text="Добавить"
+              styles={{ marginTop: 10 }}
+            />
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 };
