@@ -1,29 +1,35 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/components/useColorScheme';
+import store from "@/store/store";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useFonts } from "expo-font";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
+import "react-native-reanimated";
+import { Provider, useDispatch } from "react-redux";
+import * as SecureStore from "expo-secure-store";
+import useHttp from "@/utils/axios";
+import UIError from "@/components/UI/Error";
+import { SafeAreaView } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
-} from 'expo-router';
+} from "expo-router";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: "(tabs)",
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const segments = useSegments();
+  const pathname = usePathname();
+  const router = useRouter();
+
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
     ...FontAwesome.font,
   });
 
@@ -32,11 +38,22 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
+  // useEffect(() => {
+  //   if (loaded) {
+  //     SplashScreen.hideAsync();
+  //   }
+  // }, [loaded]);
+
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    let token = "";
+
+    (async () => {
+      token = (await SecureStore.getItemAsync("token")) || "";
+      if (token && segments.includes("registration")) {
+        router.push("(tabs)/");
+      }
+    })();
+  }, [pathname]);
 
   if (!loaded) {
     return null;
@@ -46,14 +63,32 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <>
+      <StatusBar style="dark" hidden={false} backgroundColor="transparent" />
+      <SafeAreaView
+        shouldRasterizeIOS
+        style={{
+          flex: 1,
+          backgroundColor: "transparent",
+        }}>
+        <Provider store={store}>
+          <Stack>
+            <Stack.Screen
+              name="(tabs)"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="(registration)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="(modals)" options={{ headerShown: false }} />
+          </Stack>
+          <UIError />
+        </Provider>
+      </SafeAreaView>
+    </>
   );
 }

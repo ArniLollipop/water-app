@@ -1,31 +1,64 @@
-import { StyleSheet } from 'react-native';
+import HomeCategories from "@/components/home/categories";
+import HomeProducts from "@/components/home/products";
+import HomeRecent from "@/components/home/recent";
+import UIButton from "@/components/UI/Button";
+import Colors from "@/constants/Colors";
+import { setError } from "@/store/slices/errorSlice";
+import { setCart } from "@/store/slices/userSlice";
+import { RootState } from "@/store/store";
+import sharedStyles from "@/styles/style";
+import useHttp from "@/utils/axios";
+import { useEffect } from "react";
+import { ScrollView, Text, View } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function Home() {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.user);
 
-export default function TabOneScreen() {
+  async function getCart() {
+    await useHttp
+      .post<ICart>("/getCart", { mail: user?.mail })
+      .then((res) => {
+        dispatch(setCart(res.data));
+      })
+      .catch((err) => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: err.response.data.message,
+          })
+        );
+      });
+  }
+
+  useEffect(() => {
+    if (user?.mail) getCart();
+  }, [user?.mail]);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+    <View style={sharedStyles.container}>
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={{
+          backgroundColor: Colors.background,
+          paddingBottom: 15,
+        }}>
+        <HomeRecent />
+        <HomeCategories />
+        <HomeProducts />
+      </ScrollView>
+      {user?.cart && user.cart.b12 > 0 && user.cart.b19 > 0 && (
+        <UIButton
+          type="default"
+          text="Заказать"
+          styles={{
+            position: "fixed",
+            bottom: 0,
+            zIndex: 10,
+          }}
+        />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
