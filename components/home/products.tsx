@@ -14,12 +14,12 @@ export default function Products(props: { isOrderPage?: boolean }) {
 
   const [products, setProducts] = useState([
     {
-      name: "Вода 12,9 л",
+      name: "Вода 12.5 л",
       item: "b12" as "b12" | "b19",
       count: 0,
     },
     {
-      name: "Вода 20 л",
+      name: "Вода 18.9 л",
       item: "b19" as "b12" | "b19",
       count: 0,
     },
@@ -30,12 +30,12 @@ export default function Products(props: { isOrderPage?: boolean }) {
     if (user?.cart) {
       setProducts([
         {
-          name: "Вода 12,9 л",
+          name: "Вода 12.5 л",
           item: "b12" as "b12" | "b19",
           count: user.cart.b12,
         },
         {
-          name: "Вода 20 л",
+          name: "Вода 18.9 л",
           item: "b19" as "b12" | "b19",
           count: user.cart.b19,
         },

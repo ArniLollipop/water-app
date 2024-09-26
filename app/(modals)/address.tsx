@@ -142,6 +142,7 @@ const Address = () => {
               }
             />
             <UIInput
+              onChangeText={(text) => {}}
               focusable={false}
               isLink={true}
               onPress={routeByLink}

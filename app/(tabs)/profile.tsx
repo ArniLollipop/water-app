@@ -146,6 +146,7 @@ export default function Profile() {
               />
               <UIInput
                 editable={editable === "phone"}
+                mask="+7 (999) 999-99-99"
                 value={phone}
                 onChangeText={(text) => setPhone(text)}
                 type="filled"
@@ -162,7 +163,12 @@ export default function Profile() {
                 }
               />
               <UIInput
-                value={`${firstAddress?.street} ${firstAddress?.house}`}
+                onChangeText={(text) => {}}
+                value={
+                  firstAddress?.street && firstAddress?.house
+                    ? `${firstAddress?.street} ${firstAddress?.house}`
+                    : ""
+                }
                 type="filled"
                 placeholder="Адрес"
                 rightElementClick={() => router.push("(modals)/address")}

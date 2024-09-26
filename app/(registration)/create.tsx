@@ -76,6 +76,7 @@ export default function Login() {
         </Text>
         <View style={{ width: "100%", gap: 15 }}>
           <UIInput
+            mask="+7 (999) 999-99-99"
             placeholder="Номер телефона"
             textContentType="telephoneNumber"
             value={formData.phone}

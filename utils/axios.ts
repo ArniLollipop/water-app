@@ -10,7 +10,7 @@ let token = "" as string | null;
 let refreshToken = "" as string | null;
 
 const useHttp = axios.create({
-  baseURL: "http://192.168.0.135:4444/",
+  baseURL: "http://192.168.191.48:4444/",
   headers: {
     "Content-Type": "application/json",
     authorization: "Bearer " + token,
@@ -23,6 +23,7 @@ const useHttp = axios.create({
 })();
 
 let isRetrying = false;
+let refreshTokenPromise: Promise<any> | null = null;
 
 useHttp.interceptors.response.use(null, async (error) => {
   const originalRequest = error.config;
@@ -40,6 +41,7 @@ useHttp.interceptors.response.use(null, async (error) => {
       })
       .then(async (res) => {
         console.log("все тема");
+
         await SecureStore.setItemAsync("token", res.data.accessToken);
         await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
 
@@ -49,7 +51,7 @@ useHttp.interceptors.response.use(null, async (error) => {
         refreshToken = res.data.refreshToken;
 
         originalRequest.headers.Authorization = "Bearer " + token;
-
+        router.replace("/");
         return await useHttp.request(originalRequest);
       })
       .catch(async () => {
@@ -62,6 +64,9 @@ useHttp.interceptors.response.use(null, async (error) => {
         store.dispatch(setUser(null));
         router.push("(registration)/login");
         throw error;
+      })
+      .finally(() => {
+        isRetrying = false;
       });
   }
   throw error;

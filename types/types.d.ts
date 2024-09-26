@@ -6,6 +6,7 @@ interface ICart {
 }
 
 interface IUser {
+  _id: string;
   fullName?: string;
   phone?: string;
   mail?: string;
@@ -13,6 +14,8 @@ interface IUser {
   addresses?: IAddress[];
   opForm?: "card" | "cash" | "online";
   chooseTime?: boolean;
+  price12?: number;
+  price19?: number;
   cart?: {
     b12: number;
     b19: number;

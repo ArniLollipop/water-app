@@ -3,7 +3,7 @@ import { Tabs, usePathname, useRouter, useSegments } from "expo-router";
 
 import Colors from "@/constants/Colors";
 import UIIcon from "@/components/UI/Icon";
-import { Pressable } from "react-native";
+import { Image, Pressable } from "react-native";
 
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/store/slices/userSlice";
@@ -53,8 +53,18 @@ export default function TabLayout() {
           headerTitleStyle: {
             color: Colors.tint,
           },
-          ...tabBarProps,
           title: "Главная",
+          headerTitle: () => (
+            <Image
+              source={require("../../assets/images/logo.png")}
+              style={{
+                height: 40,
+                width: 100,
+                objectFit: "contain",
+              }}
+            />
+          ),
+          ...tabBarProps,
           tabBarIcon: () => <UIIcon name="home" />,
         }}
       />
