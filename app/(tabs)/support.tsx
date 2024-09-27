@@ -1,6 +1,7 @@
 import HomeRecent from "@/components/home/recent";
 import Colors from "@/constants/Colors";
 import sharedStyles from "@/styles/style";
+import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Support() {
@@ -10,8 +11,12 @@ export default function Support() {
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
         <View style={supportStyles.listContent}>
-          <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
-          <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
+          <Link href="tel:+7 707 707 77 77">
+            <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
+          </Link>
+          <Link href="tel:+7 707 707 77 77">
+            <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
+          </Link>
         </View>
       </View>
     </View>

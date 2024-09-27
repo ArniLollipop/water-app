@@ -7,6 +7,7 @@ interface ICart {
 
 interface IUser {
   _id: string;
+  dailyWater: number;
   fullName?: string;
   phone?: string;
   mail?: string;

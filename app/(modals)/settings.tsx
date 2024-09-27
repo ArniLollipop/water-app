@@ -2,14 +2,51 @@ import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import UIRadio from "@/components/UI/Radio";
 import Colors from "@/constants/Colors";
+import { setError } from "@/store/slices/errorSlice";
+import { setUser } from "@/store/slices/userSlice";
+import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
-import { useState } from "react";
+import useHttp from "@/utils/axios";
+import { useEffect, useState } from "react";
 import { Switch, Text, View } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 const Settings = () => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.user);
+
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
-  const [standardWaterCount, setStandardWaterCount] = useState("");
+  const [standardWaterCount, setStandardWaterCount] = useState("2");
   const [editable, setEditable] = useState("");
+
+  const handleSaveSetting = async () => {
+    if (user)
+      await useHttp
+        .post("/updateClientDataMobile", {
+          mail: user.mail,
+          field: "dailyWater",
+          value: parseInt(standardWaterCount),
+        })
+        .then((res) => {
+          if (res.data.success) {
+            setEditable("");
+            dispatch(
+              setUser({
+                ...user,
+                dailyWater: parseInt(standardWaterCount),
+              })
+            );
+          }
+        })
+        .catch((err) => {
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err?.response?.data?.message,
+            })
+          );
+        });
+  };
 
   return (
     <View style={sharedStyles.container}>
@@ -45,8 +82,9 @@ const Settings = () => {
           }
         />
         <UIInput
+          mask="9|99"
           editable={editable == "waterCount"}
-          value={standardWaterCount.toString()}
+          value={standardWaterCount}
           onChangeText={(count) => setStandardWaterCount(count)}
           type="filled"
           textContentType="telephoneNumber"
@@ -55,7 +93,7 @@ const Settings = () => {
           placeholder="2"
           rightElementClick={() =>
             editable == "waterCount"
-              ? setEditable("")
+              ? handleSaveSetting()
               : setEditable("waterCount")
           }
           rightElement={

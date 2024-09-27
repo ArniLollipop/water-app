@@ -3,12 +3,17 @@ import { View, Animated, StyleSheet, Text, Pressable } from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import Colors from "@/constants/Colors";
 import sharedStyles from "@/styles/style";
+import { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
 
-const Bonus = ({ totalPresses = 5 }) => {
+const Bonus = () => {
+  const { user } = useSelector((state: RootState) => state.user);
   const [pressCount, setPressCount] = useState(0);
 
+  const totalPresses = user?.dailyWater || 2;
+
   const waterLevels = Array.from(
-    { length: totalPresses },
+    { length: totalPresses || 2 },
     () => useRef(new Animated.Value(0)).current
   );
 
@@ -97,6 +102,7 @@ const Bonus = ({ totalPresses = 5 }) => {
                 styles.leftItem,
                 index === 0 && styles.firstItem,
                 index === waterLevels.length - 1 && styles.lastItem,
+                { height: 220 / totalPresses },
               ]}>
               <Animated.View
                 style={[
@@ -225,7 +231,6 @@ const styles = StyleSheet.create({
   },
   leftItem: {
     width: 15,
-    height: 45,
     borderWidth: 1,
     borderColor: Colors.tint,
     borderStyle: "solid",

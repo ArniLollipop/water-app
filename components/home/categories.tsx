@@ -9,6 +9,8 @@ export default function HomeCategories() {
     <View style={{ flexBasis: 0 }}>
       <ScrollView
         horizontal
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ gap: 20 }}
         style={categoryStyles.container}>
         <Pressable
