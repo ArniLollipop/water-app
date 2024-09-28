@@ -4,7 +4,7 @@ import UIRadio from "@/components/UI/Radio";
 import UITimePickerModal from "@/components/UI/TimePicker";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
-import { setUser } from "@/store/slices/userSlice";
+import { setCart, setUser } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
@@ -95,6 +95,7 @@ const Order = () => {
         })
         .then((res) => {
           if (res.data.success) {
+            dispatch(setCart({ cart: { b12: 0, b19: 0 } }));
             dispatch(
               setError({
                 error: false,
