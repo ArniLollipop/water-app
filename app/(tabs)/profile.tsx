@@ -166,7 +166,6 @@ export default function Profile() {
                 }
               />
               <UIInput
-                onChangeText={() => {}}
                 key={firstAddress?.street}
                 editable={false}
                 value={`${firstAddress?.street || ""} ${
@@ -178,7 +177,6 @@ export default function Profile() {
                 rightElement={<UIIcon name="gray-chevron" />}
               />
               <UIInput
-                onChangeText={() => {}}
                 editable={false}
                 value=""
                 type="filled"

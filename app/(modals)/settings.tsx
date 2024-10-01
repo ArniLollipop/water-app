@@ -57,7 +57,6 @@ const Settings = () => {
           width: "100%",
         }}>
         <UIInput
-          onChangeText={() => {}}
           editable={false}
           value="Уведомления"
           type="filled"

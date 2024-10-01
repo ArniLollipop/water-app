@@ -22,34 +22,49 @@ export default function Login() {
 
   const handleSendMail = async () => {
     setLoading(true);
-
-    await useHttp
-      .post("/sendMail", { mail: formData.mail })
-      .then((res) => {
-        if (isRecovery) {
+    if (isRecovery) {
+      await useHttp
+        .post("/sendMailRecovery", { mail: formData.mail })
+        .then((res) => {
           router.push({
             pathname: "(registration)/confirmSms?isRecovery=true",
             params: { mail: formData.mail },
           });
-        } else {
+        })
+        .catch((err) => {
+          console.log(err);
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err.response.data.message,
+            })
+          );
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      await useHttp
+        .post("/sendMail", { mail: formData.mail })
+        .then((res) => {
           router.push({
             pathname: "(registration)/confirmSms",
             params: { mail: formData.mail },
           });
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        dispatch(
-          setError({
-            error: true,
-            errorMessage: err.response.data.message,
-          })
-        );
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+        })
+        .catch((err) => {
+          console.log(err);
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err.response.data.message,
+            })
+          );
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
   };
 
   return (
