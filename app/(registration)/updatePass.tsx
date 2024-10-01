@@ -12,7 +12,6 @@ import parseJwt from "@/utils/parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { useDispatch } from "react-redux";
 import { setError } from "@/store/slices/errorSlice";
-import MaskedUIInput from "@/components/UI/MaskedInput";
 
 export default function Login() {
   const { mail } = useLocalSearchParams<{ mail: string }>();
@@ -22,13 +21,11 @@ export default function Login() {
   const [isLoading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     mail: mail,
-    phone: "",
     password: "",
     repeatPassword: "",
-    token: "",
   });
 
-  const handleRegister = async () => {
+  const handleUpdatePass = async () => {
     if (formData.password !== formData.repeatPassword) {
       dispatch(
         setError({
@@ -42,7 +39,7 @@ export default function Login() {
     setLoading(true);
     await useHttp
       .post<{ accessToken: string; refreshToken: string }>(
-        "/clientRegister",
+        "/updateForgottenPassword",
         formData
       )
       .then(async (res) => {
@@ -76,18 +73,6 @@ export default function Login() {
           Пожалуйста, введите код из смс для подтверждения
         </Text>
         <View style={{ width: "100%", gap: 15 }}>
-          <MaskedUIInput
-            mask="+7 (999) 999-99-99"
-            placeholder="Номер телефона"
-            textContentType="telephoneNumber"
-            value={formData.phone}
-            onChangeText={(text) =>
-              setFormData({
-                ...formData,
-                phone: text,
-              })
-            }
-          />
           <UIInput
             placeholder="Пароль"
             textContentType="password"
@@ -118,8 +103,8 @@ export default function Login() {
         <UIButton
           isLoading={isLoading}
           type="default"
-          text="Создать аккаунт"
-          onPress={handleRegister}
+          text="Подтвердить"
+          onPress={handleUpdatePass}
         />
       </View>
     </View>

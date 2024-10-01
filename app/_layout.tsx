@@ -1,7 +1,13 @@
 import store from "@/store/store";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  usePathname,
+  useRouter,
+  useSegments,
+} from "expo-router";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { Provider, useDispatch } from "react-redux";
@@ -46,10 +52,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     let token = "";
+    console.log(pathname);
 
     (async () => {
       token = (await SecureStore.getItemAsync("token")) || "";
-      if (token && segments.includes("registration")) {
+      if (token && pathname.includes("/login")) {
         router.push("(tabs)/");
       }
     })();

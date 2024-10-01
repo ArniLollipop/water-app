@@ -8,15 +8,17 @@ import {
   View,
 } from "react-native";
 import { useRef } from "react";
+import { MaskedTextInput, MaskedTextInputProps } from "react-native-mask-text";
 
-interface UIInputProps extends TextInputProps {
+interface UIInputProps extends MaskedTextInputProps {
+  isLink?: boolean;
   label?: string;
   type?: "filled" | "outlined";
   rightElement?: React.ReactNode;
   rightElementClick?: () => void;
 }
 
-export default function UIInput(props: UIInputProps) {
+export default function MaskedUIInput(props: UIInputProps) {
   const inputRef = useRef<TextInput>(null);
 
   const onRightElementClick = () => {
@@ -35,7 +37,7 @@ export default function UIInput(props: UIInputProps) {
         </Text>
       )}
       <View style={{ width: "100%", position: "relative" }}>
-        <TextInput
+        <MaskedTextInput
           onPressOut={onRightElementClick}
           onSubmitEditing={onRightElementClick}
           key={props.editable ? "editable" : "not-editable"}
@@ -49,6 +51,12 @@ export default function UIInput(props: UIInputProps) {
             fontFamily: "Roboto",
             borderRadius: 8,
             fontSize: 16,
+            color: props.isLink
+              ? Colors.blue
+              : props.type == "filled"
+              ? inputStyles[props.type].color
+              : Colors.text,
+            textDecorationLine: props.isLink ? "underline" : "none",
           }}
           {...props}
         />

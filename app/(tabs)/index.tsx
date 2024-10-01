@@ -8,16 +8,19 @@ import { setCart } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
-import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { usePathname, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Home() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
+
+  const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
 
   async function getCart() {
     await useHttp
@@ -35,9 +38,20 @@ export default function Home() {
       });
   }
 
+  async function getLastOrder() {
+    await useHttp
+      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
+      .then((res) => {
+        setLastOrder(res.data.order);
+      });
+  }
+
   useEffect(() => {
-    if (user?.mail) getCart();
-  }, [user?.mail]);
+    if (pathname == "/") {
+      if (user?.mail) getCart();
+      if (user?._id) getLastOrder();
+    }
+  }, [user?.mail, pathname]);
 
   const isButtonVisible = () => {
     return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
@@ -51,7 +65,11 @@ export default function Home() {
           backgroundColor: Colors.background,
           paddingBottom: 15,
         }}>
-        <HomeRecent />
+        {lastOrder &&
+          (lastOrder.status == "awaitingOrder" ||
+            lastOrder?.status == "onTheWay") && (
+            <HomeRecent lastOrder={lastOrder} />
+          )}
         <HomeCategories />
         <Products />
       </ScrollView>

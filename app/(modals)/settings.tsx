@@ -1,5 +1,6 @@
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
+import MaskedUIInput from "@/components/UI/MaskedInput";
 import UIRadio from "@/components/UI/Radio";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
@@ -81,7 +82,7 @@ const Settings = () => {
             />
           }
         />
-        <UIInput
+        <MaskedUIInput
           mask="9|99"
           editable={editable == "waterCount"}
           value={standardWaterCount}

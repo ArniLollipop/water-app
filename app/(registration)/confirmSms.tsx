@@ -12,7 +12,10 @@ import { setError } from "@/store/slices/errorSlice";
 
 export default function Login() {
   const dispatch = useDispatch();
-  const { mail } = useLocalSearchParams<{ mail: string }>();
+  const { mail, isRecovery } = useLocalSearchParams<{
+    mail: string;
+    isRecovery: string;
+  }>();
   const router = useRouter();
 
   const [isLoading, setLoading] = useState(false);
@@ -26,7 +29,12 @@ export default function Login() {
     await useHttp
       .post("/codeConfirm", formData)
       .then((res) => {
-        if (res.status == 200) {
+        if (isRecovery) {
+          router.push({
+            pathname: "(registration)/create?isRecovery=true",
+            params: { mail: formData.mail },
+          });
+        } else {
           router.push({
             pathname: "(registration)/create",
             params: { mail: formData.mail },

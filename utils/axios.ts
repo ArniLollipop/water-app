@@ -10,7 +10,7 @@ let token = "" as string | null;
 let refreshToken = "" as string | null;
 
 const useHttp = axios.create({
-  baseURL: "http://192.168.0.135:4444/",
+  baseURL: "http://192.168.54.234:4444/",
   headers: {
     "Content-Type": "application/json",
     authorization: "Bearer " + token,
@@ -50,6 +50,7 @@ useHttp.interceptors.response.use(null, async (error) => {
         token = res.data.accessToken;
         refreshToken = res.data.refreshToken;
 
+        console.log(originalRequest, "для рефреша");
         originalRequest.headers.Authorization = "Bearer " + token;
         router.replace("/");
         return await useHttp.request(originalRequest);
@@ -69,6 +70,7 @@ useHttp.interceptors.response.use(null, async (error) => {
         isRetrying = false;
       });
   }
+
   throw error;
 });
 

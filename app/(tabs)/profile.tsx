@@ -19,6 +19,7 @@ import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/store/slices/userSlice";
 import { setError } from "@/store/slices/errorSlice";
+import MaskedUIInput from "@/components/UI/MaskedInput";
 
 export default function Profile() {
   const router = useRouter();
@@ -79,6 +80,8 @@ export default function Profile() {
           setUser({
             ...user,
             [data.field as keyof IUser]: data.value || "",
+            _id: user?._id as string,
+            dailyWater: user?.dailyWater || 2,
           })
         );
       })
@@ -144,7 +147,7 @@ export default function Profile() {
                   )
                 }
               />
-              <UIInput
+              <MaskedUIInput
                 editable={editable === "phone"}
                 mask="+7 (999) 999-99-99"
                 value={phone}
@@ -163,15 +166,26 @@ export default function Profile() {
                 }
               />
               <UIInput
-                onChangeText={(text) => {}}
-                value={
-                  firstAddress?.street && firstAddress?.house
-                    ? `${firstAddress?.street} ${firstAddress?.house}`
-                    : ""
-                }
+                onChangeText={() => {}}
+                key={firstAddress?.street}
+                editable={false}
+                value={`${firstAddress?.street || ""} ${
+                  firstAddress?.house || ""
+                }`}
                 type="filled"
                 placeholder="Адрес"
                 rightElementClick={() => router.push("(modals)/address")}
+                rightElement={<UIIcon name="gray-chevron" />}
+              />
+              <UIInput
+                onChangeText={() => {}}
+                editable={false}
+                value=""
+                type="filled"
+                placeholder="Сменить пароль"
+                rightElementClick={() =>
+                  router.push("(registration)/registration?isRecovery=true")
+                }
                 rightElement={<UIIcon name="gray-chevron" />}
               />
             </View>

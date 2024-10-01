@@ -8,12 +8,14 @@ import { setCart, setUser } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 const Order = () => {
+  const { repeat } = useLocalSearchParams<{ repeat: string }>();
+
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -22,8 +24,9 @@ const Order = () => {
   const [selectedPayment, setSelectedPayment] = useState("cash");
   const [prices, setPrices] = useState({ price12: 900, price19: 1300 });
   const [sum, setSum] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const getUser = async () => {
+  const getCart = async () => {
     await useHttp
       .post<{ clientData: { _doc: IUser }; success: true }>(
         "/getClientDataMobile",
@@ -84,18 +87,35 @@ const Order = () => {
         })
       );
     } else {
+      const address = addresses.find((a) => a._id === selectedAddressId);
+
+      if (!address) {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: "Выберите адрес доставки",
+          })
+        );
+        return;
+      }
+
+      setIsLoading(true);
+
       await useHttp
         .post<{ success: boolean }>("/addOrderClientMobile", {
           clientId: user?._id,
-          address: selectedAddressId,
+          address: {
+            actual: address?.street + " " + address?.house,
+            link: address?.link,
+          },
           products: user?.cart,
           // clientNotes: "",
           // date: new Date(),
           opForm: selectedPayment,
         })
-        .then((res) => {
+        .then(async (res) => {
           if (res.data.success) {
-            dispatch(setCart({ cart: { b12: 0, b19: 0 } }));
+            if (!repeat) await cleanCart();
             dispatch(
               setError({
                 error: false,
@@ -113,9 +133,29 @@ const Order = () => {
               errorMessage: err?.response?.data?.message,
             })
           );
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
   };
+
+  async function cleanCart() {
+    await useHttp.post("/cleanCart", { mail: user?.mail });
+  }
+
+  async function getLastOrder() {
+    await useHttp
+      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
+      .then((res) => {
+        const tempSelectedAddressId = addresses.find(
+          (a) => `${a.street} ${a.house}` === res.data.order.address.actual
+        )?._id;
+        if (tempSelectedAddressId) setSelectedAddressId(tempSelectedAddressId);
+        dispatch(setCart({ cart: res.data.order.products }));
+        setSelectedPayment(res.data.order.opForm as string);
+      });
+  }
 
   const getFormattedAddresses = (addresses: IAddress[]) => {
     if (addresses?.length === 0) return [];
@@ -128,8 +168,15 @@ const Order = () => {
 
   useEffect(() => {
     getAddresses();
-    getUser();
   }, []);
+
+  useEffect(() => {
+    if (repeat) {
+      getLastOrder();
+    } else {
+      getCart();
+    }
+  }, [addresses]);
 
   useEffect(() => {
     if (user?.cart) {
@@ -147,7 +194,7 @@ const Order = () => {
           backgroundColor: Colors.background,
           paddingBottom: 15,
         }}>
-        <Products isOrderPage={true} />
+        <Products isOrderPage={true} type="local" />
         <View
           style={{
             width: "100%",
@@ -209,7 +256,12 @@ const Order = () => {
           <Text style={orderPageStyles.text}>Итого:</Text>
           <Text style={orderPageStyles.text}>{sum} ₸ </Text>
         </View>
-        <UIButton text="Оформить заказ" type="default" onPress={handleOrder} />
+        <UIButton
+          text="Оформить заказ"
+          type="default"
+          onPress={handleOrder}
+          isLoading={isLoading}
+        />
       </ScrollView>
     </View>
   );

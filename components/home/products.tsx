@@ -8,7 +8,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { setCart } from "@/store/slices/userSlice";
 
-export default function Products(props: { isOrderPage?: boolean }) {
+export default function Products(props: {
+  isOrderPage?: boolean;
+  type?: "local";
+}) {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -52,25 +55,49 @@ export default function Products(props: { isOrderPage?: boolean }) {
   }, [props.isOrderPage]);
 
   async function updateCart(item: "b12" | "b19", method: "add" | "minus") {
-    await useHttp
-      .post<{ success: boolean }>("/updateCart", {
-        mail: user?.mail,
-        product: item,
-        method,
-      })
-      .then((res) => {
-        if (res.data.success && user?.cart) {
-          dispatch(
-            setCart({
-              cart: {
-                ...user.cart,
-                [item]:
-                  method === "add" ? user.cart[item] + 1 : user.cart[item] - 1,
-              },
-            })
-          );
-        }
-      });
+    if (props.type === "local" && user?.cart) {
+      if (method === "add") {
+        dispatch(
+          setCart({
+            cart: {
+              ...user.cart,
+              [item]: user?.cart ? user.cart[item] + 1 : 1,
+            },
+          })
+        );
+      } else {
+        dispatch(
+          setCart({
+            cart: {
+              ...user.cart,
+              [item]: user?.cart ? user.cart[item] - 1 : 0,
+            },
+          })
+        );
+      }
+    } else {
+      await useHttp
+        .post<{ success: boolean }>("/updateCart", {
+          mail: user?.mail,
+          product: item,
+          method,
+        })
+        .then((res) => {
+          if (res.data.success && user?.cart) {
+            dispatch(
+              setCart({
+                cart: {
+                  ...user.cart,
+                  [item]:
+                    method === "add"
+                      ? user.cart[item] + 1
+                      : user.cart[item] - 1,
+                },
+              })
+            );
+          }
+        });
+    }
   }
 
   return (

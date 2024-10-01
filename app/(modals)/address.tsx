@@ -1,5 +1,6 @@
 import UIButton from "@/components/UI/Button";
 import UIInput from "@/components/UI/Input";
+import MaskedUIInput from "@/components/UI/MaskedInput";
 import UIRadio from "@/components/UI/Radio";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
@@ -141,7 +142,7 @@ const Address = () => {
                 setNewAddress({ ...newAddress, house: text })
               }
             />
-            <UIInput
+            <MaskedUIInput
               onChangeText={(text) => {}}
               focusable={false}
               isLink={true}

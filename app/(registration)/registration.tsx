@@ -1,7 +1,7 @@
 import UIButton from "@/components/UI/Button";
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
 import styles from "./style";
@@ -12,6 +12,8 @@ import { setError } from "@/store/slices/errorSlice";
 export default function Login() {
   const dispatch = useDispatch();
   const router = useRouter();
+
+  const { isRecovery } = useLocalSearchParams<{ isRecovery: string }>();
 
   const [isLoading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,7 +26,12 @@ export default function Login() {
     await useHttp
       .post("/sendMail", { mail: formData.mail })
       .then((res) => {
-        if (res.status == 200) {
+        if (isRecovery) {
+          router.push({
+            pathname: "(registration)/confirmSms?isRecovery=true",
+            params: { mail: formData.mail },
+          });
+        } else {
           router.push({
             pathname: "(registration)/confirmSms",
             params: { mail: formData.mail },
@@ -32,6 +39,7 @@ export default function Login() {
         }
       })
       .catch((err) => {
+        console.log(err);
         dispatch(
           setError({
             error: true,

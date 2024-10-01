@@ -35,52 +35,52 @@ const UIRadio = (props: {
         </Text>
       )}
       <View style={{ width: "100%", flexDirection: "column", gap: 15 }}>
-        <TouchableOpacity
-          onPress={() =>
-            props.select && props.setSelect && props.setSelect(props.select)
-          }
-          key={props.select}
-          style={{
-            backgroundColor: Colors.background,
-            borderRadius: 10,
-            padding: 10,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-          <Text style={{ fontSize: 14, color: Colors.text }}>
-            {props.items?.find((item) => item.id == props.select)?.text || ""}
-          </Text>
-          {!props.withoutDot && (
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                padding: 5,
-                borderWidth: 1,
-                borderRadius: 100,
-                borderColor: Colors.tint,
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
+        {props.select && (
+          <TouchableOpacity
+            onPress={() =>
+              props.select && props.setSelect && props.setSelect(props.select)
+            }
+            key={props.select}
+            style={{
+              backgroundColor: Colors.background,
+              borderRadius: 10,
+              padding: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}>
+            <Text style={{ fontSize: 14, color: Colors.text }}>
+              {props.items?.find((item) => item.id == props.select)?.text || ""}
+            </Text>
+            {!props.withoutDot && (
               <View
                 style={{
-                  width: 13,
-                  height: 13,
-                  backgroundColor: Colors.tint,
+                  width: 20,
+                  height: 20,
+                  padding: 5,
+                  borderWidth: 1,
                   borderRadius: 100,
-                }}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
+                  borderColor: Colors.tint,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                <View
+                  style={{
+                    width: 13,
+                    height: 13,
+                    backgroundColor: Colors.tint,
+                    borderRadius: 100,
+                  }}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
         {props.items &&
           props.items.length > 0 &&
           props?.items
-            ?.filter(
-              (item, index) =>
-                (isAllVisible || index < 2) && item.id != props.select
-            )
+            ?.filter((item) => item.id != props.select)
+            ?.filter((item, index) => isAllVisible || index < 2)
             .map((item) => (
               <TouchableOpacity
                 onPress={() =>

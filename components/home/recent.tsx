@@ -1,8 +1,26 @@
 import Colors from "@/constants/Colors";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import UIIcon from "../UI/Icon";
+import { useRouter } from "expo-router";
 
-export default function HomeRecent() {
+export default function HomeRecent(props: { lastOrder: IOrder }) {
+  const router = useRouter();
+
+  const { lastOrder } = props;
+
+  const isMoreThanFiveMinutes = () => {
+    if (!lastOrder.createdAt) return false;
+
+    const date = new Date(lastOrder.createdAt);
+    const now = new Date();
+
+    return now.getTime() - date.getTime() > 300000;
+  };
+
+  const handleRepeatOrder = () => {
+    router.push("(modals)/order?repeat=true");
+  };
+
   return (
     <View style={recentStyles.container}>
       <View style={recentStyles.block}>
@@ -10,21 +28,33 @@ export default function HomeRecent() {
           <View style={recentStyles.innerTop}>
             <Text style={recentStyles.innerTopText}>Недавнее</Text>
             <View style={recentStyles.innerTopRight}>
-              <Text style={recentStyles.topRightText}>В ПУТИ</Text>
-              <Text
-                style={{ ...recentStyles.topRightText, color: Colors.text }}>
-                00:30
+              <Text style={recentStyles.topRightText}>
+                {lastOrder.status == "awaitingOrder"
+                  ? "Ожидает заказ"
+                  : "В пути"}
               </Text>
             </View>
           </View>
-          <View style={recentStyles.innerBottom}>
-            <Text style={recentStyles.innerBottomRight}>12,9 л.</Text>
-            <Text style={recentStyles.innerBottomRight}>4 шт</Text>
-          </View>
+          {lastOrder.products.b12 > 0 && (
+            <View style={recentStyles.innerBottom}>
+              <Text style={recentStyles.innerBottomRight}>12.5 л</Text>
+              <Text style={recentStyles.innerBottomRight}>
+                {lastOrder.products.b12} шт
+              </Text>
+            </View>
+          )}
+          {lastOrder.products.b19 > 0 && (
+            <View style={recentStyles.innerBottom}>
+              <Text style={recentStyles.innerBottomRight}>18.9 л</Text>
+              <Text style={recentStyles.innerBottomRight}>
+                {lastOrder.products.b19} шт
+              </Text>
+            </View>
+          )}
         </View>
-        <View style={recentStyles.bgRight}>
+        <Pressable onPress={handleRepeatOrder} style={recentStyles.bgRight}>
           <UIIcon name="white-chevron" />
-        </View>
+        </Pressable>
         <View style={recentStyles.bgIcon}>
           <UIIcon name="express" />
         </View>
@@ -32,12 +62,14 @@ export default function HomeRecent() {
       </View>
 
       <View style={recentStyles.buttons}>
-        <Pressable style={recentStyles.button}>
-          <UIIcon name="trash" />
-          <Text style={{ ...recentStyles.buttonText, ...recentStyles.tint }}>
-            ОТМЕНИТЬ
-          </Text>
-        </Pressable>
+        {!isMoreThanFiveMinutes() && (
+          <Pressable style={recentStyles.button}>
+            <UIIcon name="trash" />
+            <Text style={{ ...recentStyles.buttonText, ...recentStyles.tint }}>
+              ОТМЕНИТЬ
+            </Text>
+          </Pressable>
+        )}
         <Pressable style={recentStyles.button}>
           <UIIcon name="recycle" />
           <Text style={recentStyles.buttonText}>ПОВТОРИТЬ</Text>
@@ -119,11 +151,12 @@ const recentStyles = StyleSheet.create({
   buttons: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: 10,
     maxWidth: "80%",
     width: "100%",
     margin: "auto",
+    gap: 20,
   },
   button: {
     display: "flex",

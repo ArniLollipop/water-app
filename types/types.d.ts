@@ -31,3 +31,28 @@ interface IAddress {
   house: string;
   link: string;
 }
+
+interface IOrder {
+  _id: string;
+  client: string;
+  clientNotes: string;
+  createdAt: string;
+  date: {
+    d: string;
+    time: string;
+  };
+  history: string;
+  opForm?: "card" | "cash" | "online";
+  products: {
+    b12: number;
+    b19: number;
+  };
+  status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled";
+  sum: number;
+  transferred: boolean;
+  updatedAt: string;
+  address: {
+    actual: string;
+    link: string;
+  };
+}

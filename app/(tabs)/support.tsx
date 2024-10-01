@@ -1,13 +1,37 @@
 import HomeRecent from "@/components/home/recent";
 import Colors from "@/constants/Colors";
+import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
+import useHttp from "@/utils/axios";
 import { Link } from "expo-router";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
 
 export default function Support() {
+  const { user } = useSelector((state: RootState) => state.user);
+
+  const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
+
+  async function getLastOrder() {
+    await useHttp
+      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
+      .then((res) => {
+        setLastOrder(res.data.order);
+      });
+  }
+
+  useEffect(() => {
+    if (user?._id) getLastOrder();
+  }, [user?.mail]);
+
   return (
     <View style={sharedStyles.container}>
-      <HomeRecent />
+      {lastOrder &&
+        (lastOrder.status == "awaitingOrder" ||
+          lastOrder?.status == "onTheWay") && (
+          <HomeRecent lastOrder={lastOrder} />
+        )}
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
         <View style={supportStyles.listContent}>
