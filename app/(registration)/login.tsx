@@ -90,7 +90,10 @@ export default function Login() {
               />
               <Text style={styles.buttonText}>Запомнить меня</Text>
             </Pressable>
-            <Pressable onPress={() => router.push("forget-pass")}>
+            <Pressable
+              onPress={() =>
+                router.push("(registration)/registration?isRecovery=true")
+              }>
               <Text
                 style={{
                   ...styles.buttonText,
