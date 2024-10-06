@@ -32,7 +32,6 @@ export default function Login() {
           });
         })
         .catch((err) => {
-          console.log(err);
           dispatch(
             setError({
               error: true,
@@ -53,7 +52,6 @@ export default function Login() {
           });
         })
         .catch((err) => {
-          console.log(err);
           dispatch(
             setError({
               error: true,

@@ -4,14 +4,17 @@ import HomeRecent from "@/components/home/recent";
 import UIButton from "@/components/UI/Button";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
-import { setCart } from "@/store/slices/userSlice";
+import { setCart, setUser } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import io from "socket.io-client";
+
+const socket = io(`http://192.168.8.30:4444`);
 
 export default function Home() {
   const router = useRouter();
@@ -51,11 +54,41 @@ export default function Home() {
       if (user?.mail) getCart();
       if (user?._id) getLastOrder();
     }
+
+    if (user?._id && lastOrder?._id) {
+      socket.on("message", (data) => {
+        console.log(data);
+      });
+      socket.emit("join", user?._id, user?.mail);
+
+      socket.on(
+        "orderStatusChanged",
+        (data: {
+          orderId: string;
+          status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled";
+        }) => {
+          console.log(data);
+          if (data.orderId == lastOrder?._id) {
+            setLastOrder({
+              ...lastOrder,
+              status: data.status,
+            });
+          }
+        }
+      );
+    }
   }, [user?.mail, pathname]);
 
   const isButtonVisible = () => {
     return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
   };
+
+  // для теста очистки пользователя
+  // const resetUser = async () => {
+  //   await SecureStore.setItemAsync("token", "");
+  //   await SecureStore.setItemAsync("refreshToken", "");
+  //   dispatch(setUser(null));
+  // };
 
   return (
     <View style={sharedStyles.container}>
@@ -65,11 +98,7 @@ export default function Home() {
           backgroundColor: Colors.background,
           paddingBottom: 15,
         }}>
-        {lastOrder &&
-          (lastOrder.status == "awaitingOrder" ||
-            lastOrder?.status == "onTheWay") && (
-            <HomeRecent lastOrder={lastOrder} />
-          )}
+        {lastOrder && <HomeRecent lastOrder={lastOrder} />}
         <HomeCategories />
         <Products />
       </ScrollView>

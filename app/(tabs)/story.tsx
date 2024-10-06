@@ -90,7 +90,7 @@ export default function Story() {
 
                   <Text>
                     {order?.status == "awaitingOrder"
-                      ? "Ожидает заказ"
+                      ? "В очереди"
                       : order?.status == "onTheWay"
                       ? "В пути"
                       : order?.status == "delivered"

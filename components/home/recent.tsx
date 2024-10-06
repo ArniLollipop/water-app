@@ -29,9 +29,7 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             <Text style={recentStyles.innerTopText}>Недавнее</Text>
             <View style={recentStyles.innerTopRight}>
               <Text style={recentStyles.topRightText}>
-                {lastOrder.status == "awaitingOrder"
-                  ? "Ожидает заказ"
-                  : "В пути"}
+                {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"}
               </Text>
             </View>
           </View>

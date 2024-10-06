@@ -27,11 +27,7 @@ export default function Support() {
 
   return (
     <View style={sharedStyles.container}>
-      {lastOrder &&
-        (lastOrder.status == "awaitingOrder" ||
-          lastOrder?.status == "onTheWay") && (
-          <HomeRecent lastOrder={lastOrder} />
-        )}
+      {lastOrder && <HomeRecent lastOrder={lastOrder} />}
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
         <View style={supportStyles.listContent}>

@@ -19,7 +19,7 @@ export default function Login() {
 
   const dispatch = useDispatch();
 
-  const [isChecked, setChecked] = useState(false);
+  const [isChecked, setChecked] = useState(true);
   const [formData, setFormData] = useState({
     mail: "",
     password: "",
@@ -33,7 +33,8 @@ export default function Login() {
       )
       .then(async (res) => {
         await SecureStore.setItemAsync("token", res.data.accessToken);
-        await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
+        if (isChecked)
+          await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
         useHttp.defaults.headers.authorization =
           "Bearer " + res.data.accessToken;
         const user = parseJwt(res.data.accessToken);

@@ -30,7 +30,6 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 
 export default function RootLayout() {
-  const segments = useSegments();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -50,17 +49,16 @@ export default function RootLayout() {
   //   }
   // }, [loaded]);
 
-  useEffect(() => {
-    let token = "";
-    console.log(pathname);
+  // useEffect(() => {
+  //   let token = "";
 
-    (async () => {
-      token = (await SecureStore.getItemAsync("token")) || "";
-      if (token && pathname.includes("/login")) {
-        router.push("(tabs)/");
-      }
-    })();
-  }, [pathname]);
+  //   (async () => {
+  //     token = (await SecureStore.getItemAsync("token")) || "";
+  //     if (token && pathname.includes("/login")) {
+  //       router.push("(tabs)/");
+  //     }
+  //   })();
+  // }, [pathname]);
 
   if (!loaded) {
     return null;

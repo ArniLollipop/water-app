@@ -22,6 +22,8 @@
     "expo-checkbox": "~3.0.0",
     "expo-font": "~12.0.9",
     "expo-linking": "~6.3.1",
+    "expo-notifications": "^0.28.17",
+    "expo-permissions": "^14.4.0",
     "expo-router": "~3.5.18",
     "expo-secure-store": "~13.0.2",
     "expo-splash-screen": "~0.27.5",
@@ -43,7 +45,8 @@
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
     "react-redux": "^9.1.2",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "socket.io-client": "^4.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

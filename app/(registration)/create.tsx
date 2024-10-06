@@ -4,7 +4,7 @@ import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";
 import * as SecureStore from "expo-secure-store";
@@ -13,12 +13,14 @@ import { setUser } from "@/store/slices/userSlice";
 import { useDispatch } from "react-redux";
 import { setError } from "@/store/slices/errorSlice";
 import MaskedUIInput from "@/components/UI/MaskedInput";
+import Checkbox from "expo-checkbox";
 
 export default function Login() {
   const { mail } = useLocalSearchParams<{ mail: string }>();
   const dispatch = useDispatch();
   const router = useRouter();
 
+  const [isChecked, setChecked] = useState(true);
   const [isLoading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     mail: mail,
@@ -41,10 +43,10 @@ export default function Login() {
 
     setLoading(true);
     await useHttp
-      .post<{ accessToken: string; refreshToken: string }>(
-        "/clientRegister",
-        formData
-      )
+      .post<{ accessToken: string; refreshToken: string }>("/clientRegister", {
+        ...formData,
+        type: isChecked,
+      })
       .then(async (res) => {
         if (res.status == 200) {
           await SecureStore.setItemAsync("token", res.data.accessToken);
@@ -112,6 +114,24 @@ export default function Login() {
               })
             }
           />
+        </View>
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}>
+          <Pressable
+            onPress={() => setChecked(!isChecked)}
+            style={{ flexDirection: "row", gap: 5, alignItems: "center" }}>
+            <Checkbox
+              style={styles.checkbox}
+              value={isChecked}
+              onValueChange={setChecked}
+              color={isChecked ? Colors.tint : Colors.border}
+            />
+            <Text style={styles.buttonText}>Физ Лицо</Text>
+          </Pressable>
         </View>
       </View>
       <View style={{ gap: 15, width: "100%" }}>

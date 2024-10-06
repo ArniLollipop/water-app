@@ -25,6 +25,7 @@ const Order = () => {
   const [prices, setPrices] = useState({ price12: 900, price19: 1300 });
   const [sum, setSum] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
 
   const getCart = async () => {
     await useHttp
@@ -148,6 +149,7 @@ const Order = () => {
     await useHttp
       .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
       .then((res) => {
+        setLastOrder(res.data.order);
         const tempSelectedAddressId = addresses.find(
           (a) => `${a.street} ${a.house}` === res.data.order.address.actual
         )?._id;
@@ -188,6 +190,23 @@ const Order = () => {
 
   return (
     <View style={sharedStyles.container}>
+      {lastOrder && (
+        <Text
+          style={{
+            color: Colors.tint,
+            fontSize: 18,
+            fontWeight: "500",
+          }}>
+          {lastOrder?.status == "awaitingOrder"
+            ? "В очереди"
+            : lastOrder?.status == "onTheWay"
+            ? "В пути"
+            : lastOrder?.status == "delivered"
+            ? "Доставлен"
+            : "Отменен"}
+        </Text>
+      )}
+
       <ScrollView
         bounces={false}
         contentContainerStyle={{
@@ -256,12 +275,15 @@ const Order = () => {
           <Text style={orderPageStyles.text}>Итого:</Text>
           <Text style={orderPageStyles.text}>{sum} ₸ </Text>
         </View>
-        <UIButton
-          text="Оформить заказ"
-          type="default"
-          onPress={handleOrder}
-          isLoading={isLoading}
-        />
+        {lastOrder?.status != "awaitingOrder" &&
+          lastOrder?.status != "onTheWay" && (
+            <UIButton
+              text="Оформить заказ"
+              type="default"
+              onPress={handleOrder}
+              isLoading={isLoading}
+            />
+          )}
       </ScrollView>
     </View>
   );

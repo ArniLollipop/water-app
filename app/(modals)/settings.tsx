@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { Switch, Text, View, Alert } from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import MaskedUIInput from "@/components/UI/MaskedInput";
@@ -8,9 +10,8 @@ import { setUser } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
-import { useEffect, useState } from "react";
-import { Switch, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import * as Notifications from "expo-notifications";
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,51 @@ const Settings = () => {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [standardWaterCount, setStandardWaterCount] = useState("2");
   const [editable, setEditable] = useState("");
+
+  // Проверка наличия разрешения на отправку уведомлений при загрузке компонента
+  useEffect(() => {
+    const checkNotificationPermission = async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status === "granted") {
+        setIsNotificationsEnabled(true);
+      }
+    };
+
+    checkNotificationPermission();
+  }, []);
+
+  // Функция запроса разрешения на отправку уведомлений
+  const askNotificationPermission = async () => {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status !== "granted") {
+      const { status: newStatus } =
+        await Notifications.requestPermissionsAsync();
+      if (newStatus !== "granted") {
+        Alert.alert(
+          "Разрешение отклонено",
+          "Пожалуйста, разрешите отправку уведомлений в настройках."
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Обработчик переключения состояния
+  const handleNotificationToggle = async () => {
+    // Если включаем уведомления, запросить разрешение
+    if (!isNotificationsEnabled) {
+      const permissionGranted = await askNotificationPermission();
+      if (!permissionGranted) {
+        // Если разрешение не дано, вернуть переключатель в исходное положение
+        setIsNotificationsEnabled(false);
+        return;
+      }
+    }
+
+    // Меняем состояние уведомлений
+    setIsNotificationsEnabled(!isNotificationsEnabled);
+  };
 
   const handleSaveSetting = async () => {
     if (user)
@@ -71,13 +117,11 @@ const Settings = () => {
                 paddingVertical: 0,
                 paddingHorizontal: 0,
                 maxWidth: 50,
-                width: 20,
+                width: 30,
               }}
               ios_backgroundColor="#767577"
               value={isNotificationsEnabled}
-              onValueChange={() =>
-                setIsNotificationsEnabled(!isNotificationsEnabled)
-              }
+              onValueChange={handleNotificationToggle}
             />
           }
         />
