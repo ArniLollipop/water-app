@@ -156,6 +156,9 @@ const Order = () => {
         if (tempSelectedAddressId) setSelectedAddressId(tempSelectedAddressId);
         dispatch(setCart({ cart: res.data.order.products }));
         setSelectedPayment(res.data.order.opForm as string);
+      })
+      .catch(() => {
+        console.log("error");
       });
   }
 

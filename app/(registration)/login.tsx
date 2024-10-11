@@ -93,7 +93,7 @@ export default function Login() {
             </Pressable>
             <Pressable
               onPress={() =>
-                router.push("(registration)/registration?isRecovery=true")
+                router.push("/(registration)/registration?isRecovery=true")
               }>
               <Text
                 style={{
@@ -113,7 +113,7 @@ export default function Login() {
         <UIButton
           type="outlined"
           text="СОздать аккаунт"
-          onPress={() => router.push("(registration)/registration")}
+          onPress={() => router.push("/(registration)/registration")}
         />
       </View>
     </View>

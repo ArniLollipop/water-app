@@ -24,9 +24,9 @@ export default function TabLayout() {
     if (token) {
       const user = parseJwt(token);
       dispatch(setUser(user));
-    } else if (!segments.includes("(registration)")) {
+    } else if (!segments.includes("registration")) {
       dispatch(setUser(null));
-      router.push("(registration)/login");
+      router.push("/(registration)/login");
     }
   };
 
@@ -84,7 +84,7 @@ export default function TabLayout() {
           headerRight: () => (
             <Pressable
               style={{ marginRight: 10 }}
-              onPress={() => router.push("(modals)/settings")}>
+              onPress={() => router.push("/(modals)/settings")}>
               <UIIcon name="settings" />
             </Pressable>
           ),

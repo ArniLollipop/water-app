@@ -142,8 +142,7 @@ const Address = () => {
                 setNewAddress({ ...newAddress, house: text })
               }
             />
-            <MaskedUIInput
-              onChangeText={(text) => {}}
+            <UIInput
               focusable={false}
               isLink={true}
               onPress={routeByLink}

@@ -2,6 +2,7 @@ import store from "@/store/store";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import {
+  SplashScreen,
   Stack,
   useLocalSearchParams,
   usePathname,
@@ -9,7 +10,6 @@ import {
   useSegments,
 } from "expo-router";
 import { useEffect } from "react";
-import "react-native-reanimated";
 import { Provider, useDispatch } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import useHttp from "@/utils/axios";
@@ -43,22 +43,22 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
-  // useEffect(() => {
-  //   if (loaded) {
-  //     SplashScreen.hideAsync();
-  //   }
-  // }, [loaded]);
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
 
-  // useEffect(() => {
-  //   let token = "";
+  useEffect(() => {
+    let token = "";
 
-  //   (async () => {
-  //     token = (await SecureStore.getItemAsync("token")) || "";
-  //     if (token && pathname.includes("/login")) {
-  //       router.push("(tabs)/");
-  //     }
-  //   })();
-  // }, [pathname]);
+    (async () => {
+      token = (await SecureStore.getItemAsync("token")) || "";
+      if (token && pathname.includes("/login")) {
+        router.push("/(tabs)");
+      }
+    })();
+  }, [pathname]);
 
   if (!loaded) {
     return null;

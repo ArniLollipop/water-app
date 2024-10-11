@@ -18,6 +18,9 @@ export default function Support() {
       .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
       .then((res) => {
         setLastOrder(res.data.order);
+      })
+      .catch(() => {
+        console.log("error");
       });
   }
 

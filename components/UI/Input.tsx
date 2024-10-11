@@ -10,6 +10,7 @@ import {
 import { useRef } from "react";
 
 interface UIInputProps extends TextInputProps {
+  isLink?: boolean;
   label?: string;
   type?: "filled" | "outlined";
   rightElement?: React.ReactNode;
@@ -42,6 +43,7 @@ export default function UIInput(props: UIInputProps) {
           autoFocus={props.editable}
           ref={inputRef}
           placeholderTextColor={Colors.disabled}
+          autoCapitalize="none"
           style={{
             ...inputStyles[props.type || "outlined"],
             padding: 12,
@@ -49,6 +51,11 @@ export default function UIInput(props: UIInputProps) {
             fontFamily: "Roboto",
             borderRadius: 8,
             fontSize: 16,
+            color: props.isLink
+              ? Colors.blue
+              : props.type == "filled"
+              ? inputStyles[props.type].color
+              : Colors.text,
           }}
           {...props}
         />

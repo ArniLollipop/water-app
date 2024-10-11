@@ -8,11 +8,10 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { setError } from "@/store/slices/errorSlice";
-import useHttp from "@/utils/axios";
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
-const NOTIFICATION_INTERVAL_MS = 3600000; // 3 секунды для быстрого теста
+const NOTIFICATION_INTERVAL_MS = 3600000; // 1 час
 const NOTIFICATION_START_HOUR = 9; // 9:00
 const NOTIFICATION_END_HOUR = 22; // 22:00
 
@@ -26,7 +25,7 @@ const Bonus = () => {
   const { user } = useSelector((state: RootState) => state.user);
   const userDailyWaterInMl =
     (user?.dailyWater && user.dailyWater * 1000) || 2000;
-  const totalPresses = Math.floor((userDailyWaterInMl || 2000) / ML_PER_PRESS); // Общее количество нажатий
+  const totalPresses = Math.floor((userDailyWaterInMl || 2000) / ML_PER_PRESS);
 
   const waterLevels = Array.from(
     { length: totalPresses },
@@ -36,76 +35,67 @@ const Bonus = () => {
   const rotationX = useRef(new Animated.Value(0)).current;
   const rotationY = useRef(new Animated.Value(0)).current;
 
-  const [pressCount, setPressCount] = useState(0); // Количество нажатий
-  const [currentAmount, setCurrentAmount] = useState(0); // Текущий объем воды в мл
-  const [timer, setTimer] = useState(0); // Время таймера в мс
-  const [isTimerRunning, setIsTimerRunning] = useState(true); // Статус таймера
+  const [pressCount, setPressCount] = useState(0);
+  const [currentAmount, setCurrentAmount] = useState(0);
+  const [timer, setTimer] = useState<number | null>(null);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // Добавляем состояние для проверки загрузки данных
 
   // Request permissions on component mount
   useEffect(() => {
     const requestPermissions = async () => {
       try {
         const { status } = await Notifications.getPermissionsAsync();
-        console.log("Current permission status:", status);
-
         if (status !== "granted") {
           const { granted } = await Notifications.requestPermissionsAsync();
-          if (!granted) {
-            console.warn("Notification permissions not granted");
-            return;
-          }
+          if (!granted) return;
         }
-        console.log("Notification permissions granted successfully");
       } catch (error) {
         console.error("Error requesting notification permissions:", error);
       }
     };
-
     requestPermissions();
   }, []);
 
   // Load data from SecureStore on component mount
   useEffect(() => {
     const loadStoredData = async () => {
-      // try {
-      //   const storedPressCount = await SecureStore.getItemAsync(
-      //     PRESS_COUNT_KEY
-      //   );
-      //   const storedCurrentAmount = await SecureStore.getItemAsync(
-      //     CURRENT_AMOUNT_KEY
-      //   );
-      //   const storedTimer = await SecureStore.getItemAsync(TIMER_KEY);
+      try {
+        const storedPressCount = await SecureStore.getItemAsync(
+          PRESS_COUNT_KEY
+        );
+        const storedCurrentAmount = await SecureStore.getItemAsync(
+          CURRENT_AMOUNT_KEY
+        );
+        const storedTimer = await SecureStore.getItemAsync(TIMER_KEY);
 
-      //   const pressCountValue = storedPressCount
-      //     ? parseInt(storedPressCount, 10)
-      //     : 0;
-      //   const currentAmountValue = storedCurrentAmount
-      //     ? parseInt(storedCurrentAmount, 10)
-      //     : 0;
-      //   const timerValue = storedTimer
-      //     ? parseInt(storedTimer, 10)
-      //     : NOTIFICATION_INTERVAL_MS;
+        const pressCountValue = storedPressCount
+          ? parseInt(storedPressCount, 10)
+          : 0;
+        const currentAmountValue = storedCurrentAmount
+          ? parseInt(storedCurrentAmount, 10)
+          : 0;
+        const timerValue = storedTimer ? parseInt(storedTimer, 10) : null;
 
-      //   setPressCount(pressCountValue);
-      //   setCurrentAmount(currentAmountValue); // Здесь обновляем состояние currentAmount
-      //   setTimer(timerValue);
-      //   setIsTimerRunning(timerValue > 0);
+        setPressCount(pressCountValue);
+        setCurrentAmount(currentAmountValue);
+        setTimer(timerValue ?? NOTIFICATION_INTERVAL_MS);
+        setIsTimerRunning(!!timerValue);
 
-      //   // Анимация уже заполненных уровней воды
-      //   for (let i = 0; i < pressCountValue; i++) {
-      //     Animated.timing(waterLevels[i], {
-      //       toValue: 100,
-      //       duration: 500,
-      //       useNativeDriver: false,
-      //     }).start();
-      //   }
-      // } catch (error) {
-      //   console.error("Ошибка при загрузке данных из SecureStore:", error);
-      // }
+        // Анимация уже заполненных уровней воды (снизу вверх)
+        for (let i = 0; i < pressCountValue; i++) {
+          Animated.timing(waterLevels[i], {
+            toValue: 100,
+            duration: 500,
+            useNativeDriver: false,
+          }).start();
+        }
 
-      await SecureStore.setItemAsync(CURRENT_AMOUNT_KEY, "0");
+        setIsDataLoaded(true); // Устанавливаем флаг, что данные загружены
+      } catch (error) {
+        console.error("Ошибка при загрузке данных из SecureStore:", error);
+      }
     };
-
     loadStoredData();
   }, []);
 
@@ -113,16 +103,15 @@ const Bonus = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
-    if (isTimerRunning && timer > 0 && currentAmount !== null) {
+    if (isTimerRunning && timer && currentAmount !== null && isDataLoaded) {
       interval = setInterval(() => {
-        setTimer((prev) => {
-          const newTimer = prev - 1000;
-
+        setTimer((prevTimer) => {
+          if (!prevTimer) return null;
+          const newTimer = prevTimer - 1000;
           if (newTimer <= 0) {
             clearInterval(interval);
             handleTimerEnd();
           }
-
           return newTimer;
         });
       }, 1000);
@@ -131,33 +120,26 @@ const Bonus = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isTimerRunning, timer, currentAmount]);
+  }, [isTimerRunning, timer, currentAmount, isDataLoaded]);
 
   // Function to handle end of timer
   const handleTimerEnd = async () => {
     const now = new Date();
     const currentHour = now.getHours();
 
-    console.log("Timer ended, checking time for notification");
-
     // Notification restrictions between 22:00 and 9:00
     if (
       currentHour >= NOTIFICATION_END_HOUR ||
       currentHour < NOTIFICATION_START_HOUR
     ) {
-      console.log("Not sending notification due to quiet hours");
       return;
     }
 
-    // Reduce water amount by 250 ml on timer reset
     const newAmount = Math.max(currentAmount - ML_PER_PRESS, 0);
     setCurrentAmount(newAmount);
-    setTimer(NOTIFICATION_INTERVAL_MS); // Reset timer
+    setTimer(NOTIFICATION_INTERVAL_MS);
     setIsTimerRunning(false);
     await saveDataToStore(pressCount, newAmount, NOTIFICATION_INTERVAL_MS);
-
-    // Log for debugging
-    console.log("Sending notification");
 
     // Send notification
     try {
@@ -166,7 +148,7 @@ const Bonus = () => {
           title: "Time to drink water!",
           body: "Don't forget to drink your glass of water.",
         },
-        trigger: { seconds: 1 }, // Send after 1 second
+        trigger: { seconds: 1 },
       });
     } catch (error) {
       console.error("Error sending notification:", error);
@@ -199,7 +181,7 @@ const Bonus = () => {
   };
 
   const handlePress = async () => {
-    if (timer > 0 && timer !== NOTIFICATION_INTERVAL_MS) {
+    if (timer !== null && timer > 0 && timer !== NOTIFICATION_INTERVAL_MS) {
       dispatch(
         setError({
           error: true,
@@ -265,7 +247,6 @@ const Bonus = () => {
         ]).start();
       });
 
-      // Start timer
       setIsTimerRunning(true);
     }
   };
@@ -294,16 +275,7 @@ const Bonus = () => {
   return (
     <View style={sharedStyles.container}>
       {/* Display water levels */}
-      <View
-        style={{
-          height: "50%",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          flexDirection: "row",
-          justifyContent: "center",
-          position: "relative",
-        }}>
+      <View style={styles.waterContainer}>
         <View style={styles.leftItems}>
           {waterLevels.map((waterLevel, index) => (
             <View
@@ -346,12 +318,7 @@ const Bonus = () => {
         </Pressable>
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          width: "100%",
-        }}>
+      <View style={styles.infoBlocksContainer}>
         <View style={styles.infoBlock}>
           <UIIcon name="waterButton" />
           <Text style={styles.infoBlockText}>{pressCount}</Text>
@@ -359,7 +326,7 @@ const Bonus = () => {
         <View style={styles.infoBlock}>
           <UIIcon name="alarmClock" />
           <Text style={styles.infoBlockText}>
-            {isTimerRunning ? formatTime(timer) : "1:00:00"}
+            {isTimerRunning ? formatTime(timer!) : "1:00:00"}
           </Text>
         </View>
         <View style={styles.infoBlock}>
@@ -392,6 +359,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  waterContainer: {
+    height: "50%",
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    position: "relative",
+  },
   imageContainer: {
     width: 200,
     height: 200,
@@ -400,6 +376,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 10,
+  },
+  infoBlocksContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
   infoBlock: {
     backgroundColor: Colors.darkWhite,

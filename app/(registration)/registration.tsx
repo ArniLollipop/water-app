@@ -27,7 +27,7 @@ export default function Login() {
         .post("/sendMailRecovery", { mail: formData.mail })
         .then((res) => {
           router.push({
-            pathname: "(registration)/confirmSms?isRecovery=true",
+            pathname: "/(registration)/confirmSms?isRecovery=true",
             params: { mail: formData.mail },
           });
         })
@@ -47,7 +47,7 @@ export default function Login() {
         .post("/sendMail", { mail: formData.mail })
         .then((res) => {
           router.push({
-            pathname: "(registration)/confirmSms",
+            pathname: "/(registration)/confirmSms",
             params: { mail: formData.mail },
           });
         })

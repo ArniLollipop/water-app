@@ -3,11 +3,13 @@ import Colors from "@/constants/Colors";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
+import { usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Story() {
+  const pathname = usePathname();
   const { user } = useSelector((state: RootState) => state.user);
 
   const [page, setPage] = useState(1);
@@ -25,14 +27,16 @@ export default function Story() {
   }
 
   useEffect(() => {
-    getHistory();
-  }, [user?.mail]);
+    if (pathname == "/story") {
+      getHistory();
+    }
+  }, [user?.mail, pathname]);
 
   return (
     <ScrollView
       onScroll={({ nativeEvent }) => {
         if (
-          nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
+          nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >
           nativeEvent.contentSize.height
         ) {
           setPage(page + 1);
@@ -137,6 +141,7 @@ const storyStyles = StyleSheet.create({
     backgroundColor: Colors.border,
     borderRadius: 11,
     color: Colors.background,
+    overflow: "hidden",
   },
   itemRight: {
     display: "flex",

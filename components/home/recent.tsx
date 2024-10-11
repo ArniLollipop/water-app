@@ -1,11 +1,10 @@
 import Colors from "@/constants/Colors";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import UIIcon from "../UI/Icon";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
+import useHttp from "@/utils/axios";
 
 export default function HomeRecent(props: { lastOrder: IOrder }) {
-  const router = useRouter();
-
   const { lastOrder } = props;
 
   const isMoreThanFiveMinutes = () => {
@@ -18,7 +17,26 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
   };
 
   const handleRepeatOrder = () => {
-    router.push("(modals)/order?repeat=true");
+    router.push({
+      pathname: "/(modals)/order",
+      params: { repeat: "true" },
+    });
+  };
+
+  const handleCancelOrder = async () => {
+    await useHttp
+      .post("/updateOrder", {
+        orderId: lastOrder._id,
+        change: "status",
+        changeData: "onTheWay",
+      })
+      .then(() => {
+        console.log(lastOrder._id);
+        console.log("order canceled");
+      })
+      .catch(() => {
+        console.log("error canceling order");
+      });
   };
 
   return (
@@ -29,7 +47,8 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             <Text style={recentStyles.innerTopText}>Недавнее</Text>
             <View style={recentStyles.innerTopRight}>
               <Text style={recentStyles.topRightText}>
-                {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"}
+                {/* {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"} */}
+                {lastOrder.status}
               </Text>
             </View>
           </View>
@@ -60,8 +79,8 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
       </View>
 
       <View style={recentStyles.buttons}>
-        {!isMoreThanFiveMinutes() && (
-          <Pressable style={recentStyles.button}>
+        {isMoreThanFiveMinutes() && (
+          <Pressable onPress={handleCancelOrder} style={recentStyles.button}>
             <UIIcon name="trash" />
             <Text style={{ ...recentStyles.buttonText, ...recentStyles.tint }}>
               ОТМЕНИТЬ
@@ -123,6 +142,7 @@ const recentStyles = StyleSheet.create({
     paddingVertical: 3,
     backgroundColor: Colors.border,
     borderRadius: 11,
+    overflow: "hidden",
     color: Colors.background,
   },
   innerTopText: {

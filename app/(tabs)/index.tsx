@@ -14,7 +14,7 @@ import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
 
-const socket = io(`http://192.168.8.30:4444`);
+const socket = io("http://192.168.0.167:4444");
 
 export default function Home() {
   const router = useRouter();
@@ -46,6 +46,9 @@ export default function Home() {
       .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
       .then((res) => {
         setLastOrder(res.data.order);
+      })
+      .catch(() => {
+        console.log("error");
       });
   }
 
@@ -55,7 +58,8 @@ export default function Home() {
       if (user?._id) getLastOrder();
     }
 
-    if (user?._id && lastOrder?._id) {
+    if (user?.mail && lastOrder?._id) {
+      console.log(user?.mail && lastOrder?._id);
       socket.on("message", (data) => {
         console.log(data);
       });
@@ -83,13 +87,6 @@ export default function Home() {
     return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
   };
 
-  // для теста очистки пользователя
-  // const resetUser = async () => {
-  //   await SecureStore.setItemAsync("token", "");
-  //   await SecureStore.setItemAsync("refreshToken", "");
-  //   dispatch(setUser(null));
-  // };
-
   return (
     <View style={sharedStyles.container}>
       <ScrollView
@@ -104,7 +101,7 @@ export default function Home() {
       </ScrollView>
       {isButtonVisible() && (
         <UIButton
-          onPress={() => router.push("(modals)/order")}
+          onPress={() => router.push("/(modals)/order")}
           type="default"
           text="Заказать"
           styles={{

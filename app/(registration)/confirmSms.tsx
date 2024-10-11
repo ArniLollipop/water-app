@@ -31,12 +31,12 @@ export default function Login() {
       .then((res) => {
         if (isRecovery) {
           router.push({
-            pathname: "(registration)/create?isRecovery=true",
+            pathname: "/(registration)/create?isRecovery=true",
             params: { mail: formData.mail },
           });
         } else {
           router.push({
-            pathname: "(registration)/create",
+            pathname: "/(registration)/create",
             params: { mail: formData.mail },
           });
         }
@@ -45,7 +45,7 @@ export default function Login() {
         dispatch(
           setError({
             error: true,
-            errorMessage: err.response.data.message,
+            errorMessage: "Неверный код",
           })
         );
       })

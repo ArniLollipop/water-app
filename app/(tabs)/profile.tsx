@@ -2,8 +2,8 @@ import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import sharedStyles from "@/styles/style";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, usePathname, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -22,6 +22,7 @@ import { setError } from "@/store/slices/errorSlice";
 import MaskedUIInput from "@/components/UI/MaskedInput";
 
 export default function Profile() {
+  const pathname = usePathname();
   const router = useRouter();
 
   const dispatch = useDispatch();
@@ -36,9 +37,10 @@ export default function Profile() {
   const [firstAddress, setFirstAddress] = useState({} as IAddress);
 
   const handleLogOut = async () => {
+    console.log("logout");
     await SecureStore.setItemAsync("token", "");
     await SecureStore.setItemAsync("refreshToken", "");
-    router.push("(registration)/login");
+    router.push("/(registration)/login");
   };
 
   const getUser = async () => {
@@ -95,9 +97,16 @@ export default function Profile() {
       });
   };
 
+  const formatName = () => {
+    if (fullName && fullName.split(" ")[0][0] && fullName.split(" ")[0][1]) {
+      return fullName.split(" ")[0][0] + fullName?.split(" ")[0][1];
+    }
+    return "User";
+  };
+
   useEffect(() => {
-    getUser();
-  }, []);
+    if (pathname == "/profile") getUser();
+  }, [pathname]);
 
   return (
     <KeyboardAvoidingView
@@ -120,11 +129,7 @@ export default function Profile() {
               width: "100%",
             }}>
             <View style={profileStyles.avatar}>
-              <Text style={profileStyles.avatarText}>
-                {fullName
-                  ? fullName.split(" ")[0][0] + fullName.split(" ")[0][1]
-                  : ""}
-              </Text>
+              <Text style={profileStyles.avatarText}>{formatName()}</Text>
             </View>
             <Text style={profileStyles.name}>{fullName}</Text>
             <View style={{ gap: 10, width: "100%", marginVertical: 15 }}>
@@ -168,12 +173,16 @@ export default function Profile() {
               <UIInput
                 key={firstAddress?.street}
                 editable={false}
-                value={`${firstAddress?.street || ""} ${
-                  firstAddress?.house || ""
-                }`}
+                value={
+                  firstAddress?.street || firstAddress?.street
+                    ? `${firstAddress?.street || ""} ${
+                        firstAddress?.house || ""
+                      }`
+                    : "Адреса"
+                }
                 type="filled"
                 placeholder="Адрес"
-                rightElementClick={() => router.push("(modals)/address")}
+                rightElementClick={() => router.push("/(modals)/address")}
                 rightElement={<UIIcon name="gray-chevron" />}
               />
               <UIInput
@@ -182,7 +191,7 @@ export default function Profile() {
                 type="filled"
                 placeholder="Сменить пароль"
                 rightElementClick={() =>
-                  router.push("(registration)/registration?isRecovery=true")
+                  router.push("/(registration)/registration?isRecovery=true")
                 }
                 rightElement={<UIIcon name="gray-chevron" />}
               />
@@ -213,7 +222,7 @@ export default function Profile() {
               />
             </View>
             <TouchableOpacity
-              onPress={() => handleLogOut}
+              onPress={handleLogOut}
               style={{ marginTop: 20, marginLeft: "auto" }}>
               <Text style={{ color: Colors.tint, fontSize: 20 }}>Выйти</Text>
             </TouchableOpacity>

@@ -1,7 +1,22 @@
 import Colors from "@/constants/Colors";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from "react-native";
 import UIIcon from "./Icon";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const UIRadio = (props: {
   withoutDot?: boolean;
@@ -13,6 +28,10 @@ const UIRadio = (props: {
   setSelect?: (value: string) => void;
 }) => {
   const [isAllVisible, setAllVisible] = useState(false);
+
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [props.select]);
 
   return (
     <View

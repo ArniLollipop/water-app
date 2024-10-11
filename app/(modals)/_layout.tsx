@@ -6,6 +6,7 @@ export default function Layout() {
       <Stack.Screen
         name="order"
         options={{
+          headerBackVisible: true,
           headerBackButtonMenuEnabled: true,
           headerShown: true,
           headerShadowVisible: false,
