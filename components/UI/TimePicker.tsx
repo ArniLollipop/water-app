@@ -5,7 +5,9 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
+  FlatList,
+  ListRenderItem,
+  Pressable,
 } from "react-native";
 
 type UITimePickerModalProps = {
@@ -15,10 +17,10 @@ type UITimePickerModalProps = {
 const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [step, setStep] = useState<"date" | "time">("date");
-  const [selectedDate, setSelectedDate] = useState<Date>(minDate); // Default to minDate
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date()); // Tracks the month being viewed
+  const [selectedDate, setSelectedDate] = useState<Date>(minDate);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
-  const dateScrollViewRef = useRef<ScrollView>(null); // Reference for the ScrollView to scroll to top
+  const dateScrollViewRef = useRef<FlatList<Date>>(null);
 
   const toggleModal = () => {
     setIsVisible(!isVisible);
@@ -42,46 +44,77 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
     setSelectedDate(newDate);
   };
 
-  // Helper function to generate all days in the current month
-  const renderDateOptions = () => {
+  const goToNextMonth = () => {
+    setCurrentMonth((prevMonth) => {
+      const nextMonth = new Date(prevMonth);
+      nextMonth.setMonth(prevMonth.getMonth() + 1);
+      return nextMonth;
+    });
+    dateScrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const goToPreviousMonth = () => {
+    if (
+      currentMonth.getFullYear() === minDate.getFullYear() &&
+      currentMonth.getMonth() === minDate.getMonth()
+    ) {
+      return;
+    }
+    setCurrentMonth((prevMonth) => {
+      const previousMonth = new Date(prevMonth);
+      previousMonth.setMonth(prevMonth.getMonth() - 1);
+      return previousMonth;
+    });
+    dateScrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const datesInMonth = () => {
     const daysInMonth = new Date(
       currentMonth.getFullYear(),
       currentMonth.getMonth() + 1,
       0
-    ).getDate(); // Total days in the current month
+    ).getDate();
 
-    const datesInMonth = Array.from(Array(daysInMonth).keys()).map((i) => {
-      const newDate = new Date(
+    const resetTime = (date: Date) => {
+      const newDate = new Date(date);
+      newDate.setHours(0, 0, 0, 0);
+      return newDate;
+    };
+
+    const minDateReset = resetTime(minDate);
+
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(
         currentMonth.getFullYear(),
         currentMonth.getMonth(),
         i + 1
       );
-      return newDate;
-    });
+      return date;
+    }).filter((date) => resetTime(date) >= minDateReset);
+  };
 
-    return datesInMonth.map((date) => (
+  const renderDateItem: ListRenderItem<Date> = ({ item: date }) => {
+    const resetTime = (date: Date) => {
+      const newDate = new Date(date);
+      newDate.setHours(0, 0, 0, 0);
+      return newDate;
+    };
+
+    const isSelected =
+      resetTime(selectedDate).getTime() === resetTime(date).getTime();
+
+    const isDisabled = resetTime(date) < resetTime(minDate);
+
+    return (
       <TouchableOpacity
-        key={date.toDateString()}
         onPress={() => handleChangeDate(date)}
-        style={[
-          styles.option,
-          selectedDate.getDate() === date.getDate() &&
-          selectedDate.getMonth() === date.getMonth() &&
-          selectedDate.getFullYear() === date.getFullYear()
-            ? styles.selectedOption
-            : null,
-        ]}
-        disabled={date < minDate} // Disable dates before minDate
-      >
+        style={[styles.option, isSelected ? styles.selectedOption : null]}
+        disabled={isDisabled}>
         <Text
           style={[
             styles.optionText,
-            selectedDate.getDate() === date.getDate() &&
-            selectedDate.getMonth() === date.getMonth() &&
-            selectedDate.getFullYear() === date.getFullYear()
-              ? styles.selectedOptionText
-              : null,
-            date < minDate ? styles.disabledText : null, // Disable date style
+            isSelected ? styles.selectedOptionText : null,
+            isDisabled ? styles.disabledText : null,
           ]}>
           {date.toLocaleDateString("ru-RU", {
             weekday: "long",
@@ -90,7 +123,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
           })}
         </Text>
       </TouchableOpacity>
-    ));
+    );
   };
 
   const renderTimeOptions = (
@@ -109,60 +142,41 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
         ((isHour && i < minDate.getHours()) ||
           (!isHour && i < minDate.getMinutes()));
 
-      options.push(
-        <TouchableOpacity
-          key={value}
-          onPress={() => {
-            const newDate = new Date(selectedDate);
-            if (isHour) {
-              newDate.setHours(i);
-            } else {
-              newDate.setMinutes(i);
-            }
-            setSelectedDate(newDate);
-          }}
-          style={[
-            styles.option,
-            (isHour && selectedDate.getHours() === i) ||
-            (!isHour && selectedDate.getMinutes() === i)
-              ? styles.selectedOption
-              : null,
-          ]}
-          disabled={isDisabled} // Disable time options if earlier than minDate
-        >
-          <Text
+      if (!isDisabled)
+        options.push(
+          <TouchableOpacity
+            key={value}
+            onPress={() => {
+              const newDate = new Date(selectedDate);
+              if (isHour) {
+                newDate.setHours(i);
+              } else {
+                newDate.setMinutes(i);
+              }
+              setSelectedDate(newDate);
+            }}
             style={[
-              styles.optionText,
+              styles.option,
               (isHour && selectedDate.getHours() === i) ||
               (!isHour && selectedDate.getMinutes() === i)
-                ? styles.selectedOptionText
+                ? styles.selectedOption
                 : null,
-              isDisabled ? styles.disabledText : null, // Disable time style
             ]}>
-            {value}
-          </Text>
-        </TouchableOpacity>
-      );
+            <Text
+              style={[
+                styles.optionText,
+                (isHour && selectedDate.getHours() === i) ||
+                (!isHour && selectedDate.getMinutes() === i)
+                  ? styles.selectedOptionText
+                  : null,
+                isDisabled ? styles.disabledText : null,
+              ]}>
+              {value}
+            </Text>
+          </TouchableOpacity>
+        );
     }
     return options;
-  };
-
-  const goToNextMonth = () => {
-    setCurrentMonth((prevMonth) => {
-      const nextMonth = new Date(prevMonth);
-      nextMonth.setMonth(prevMonth.getMonth() + 1);
-      return nextMonth;
-    });
-    dateScrollViewRef.current?.scrollTo({ y: 0, animated: true }); // Scroll to top
-  };
-
-  const goToPreviousMonth = () => {
-    setCurrentMonth((prevMonth) => {
-      const previousMonth = new Date(prevMonth);
-      previousMonth.setMonth(prevMonth.getMonth() - 1);
-      return previousMonth;
-    });
-    dateScrollViewRef.current?.scrollTo({ y: 0, animated: true }); // Scroll to top
   };
 
   return (
@@ -180,59 +194,77 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
 
             {step === "date" && (
               <View style={styles.paginationContainer}>
-                <TouchableOpacity
+                <Pressable
                   onPress={goToPreviousMonth}
                   style={styles.paginationButton}>
                   <Text style={styles.paginationButtonText}>Пред</Text>
-                </TouchableOpacity>
+                </Pressable>
                 <Text style={styles.paginationTitle}>
                   {currentMonth.toLocaleDateString("ru-RU", {
                     month: "long",
                     year: "numeric",
                   })}
                 </Text>
-                <TouchableOpacity
+                <Pressable
+                  onLongPress={() => console.log("Long Press")}
                   onPress={goToNextMonth}
                   style={styles.paginationButton}>
                   <Text style={styles.paginationButtonText}>След</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
 
-            <ScrollView
-              contentContainerStyle={styles.pickerContainer}
-              ref={dateScrollViewRef}>
-              {step === "date" ? (
-                renderDateOptions() // Date selection options for the current month
-              ) : (
-                <>
-                  <View style={styles.picker}>
-                    <Text style={styles.pickerLabel}>Часы</Text>
-                    <ScrollView style={styles.scrollPicker}>
-                      {renderTimeOptions(
-                        selectedDate.getDate() === minDate.getDate()
-                          ? minDate.getHours()
-                          : 0,
-                        23,
-                        1,
-                        true
-                      )}
-                    </ScrollView>
-                  </View>
-                  <View style={styles.picker}>
-                    <Text style={styles.pickerLabel}>Минуты</Text>
-                    <ScrollView style={styles.scrollPicker}>
-                      {renderTimeOptions(
-                        0,
-                        59,
-                        5,
-                        false // False indicates minutes
-                      )}
-                    </ScrollView>
-                  </View>
-                </>
-              )}
-            </ScrollView>
+            {step === "date" ? (
+              <FlatList
+                data={datesInMonth()}
+                renderItem={renderDateItem}
+                keyExtractor={(item) => item.toDateString()}
+                ref={dateScrollViewRef}
+                contentContainerStyle={styles.pickerContainer}
+                initialNumToRender={10} // Ограничение рендеринга до первых 10 элементов
+                windowSize={5} // Для виртуализации, чтобы рендерить только видимые элементы
+              />
+            ) : (
+              <View style={styles.timePickerContainer}>
+                <View style={styles.picker}>
+                  <Text style={styles.pickerLabel}>Часы</Text>
+                  <FlatList
+                    data={renderTimeOptions(
+                      selectedDate.getDate() === minDate.getDate()
+                        ? minDate.getHours()
+                        : 0,
+                      23,
+                      1,
+                      true
+                    )}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => item}
+                    initialNumToRender={10}
+                    windowSize={5}
+                    style={{
+                      maxHeight: 240,
+                      height: 200,
+                      overflow: "scroll",
+                    }}
+                  />
+                </View>
+                <View style={styles.picker}>
+                  <Text style={styles.pickerLabel}>Минуты</Text>
+                  <FlatList
+                    data={renderTimeOptions(0, 59, 5, false)}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => item}
+                    initialNumToRender={10}
+                    windowSize={5}
+                    style={{
+                      maxHeight: 240,
+                      height: 200,
+                      overflow: "scroll",
+                    }}
+                  />
+                </View>
+              </View>
+            )}
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -306,19 +338,29 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
+    zIndex: 100000,
+    position: "relative",
   },
   paginationButton: {
     padding: 10,
+    zIndex: 10000,
+    position: "relative",
   },
   paginationButtonText: {
     fontSize: 16,
     color: "#007AFF",
+    zIndex: 100000,
   },
   paginationTitle: {
     fontSize: 18,
     fontWeight: "bold",
   },
   pickerContainer: {
+    marginBottom: 20,
+  },
+  timePickerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   picker: {
@@ -330,9 +372,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
-  scrollPicker: {
-    height: 100, // Reduced height to show fewer items at once
-  },
   option: {
     paddingVertical: 10,
   },
@@ -341,14 +380,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   selectedOption: {
-    backgroundColor: "#007AFF", // Selected background color
+    backgroundColor: "#007AFF",
     borderRadius: 8,
   },
   selectedOptionText: {
-    color: "#fff", // Selected text color
+    color: "#fff",
   },
   disabledText: {
-    color: "#ccc", // Style for disabled dates and times
+    color: "#ccc",
   },
   buttonContainer: {
     flexDirection: "row",

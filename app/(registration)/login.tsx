@@ -26,6 +26,7 @@ export default function Login() {
   });
 
   const handleLogin = async () => {
+    console.log("login");
     await useHttp
       .post<{ accessToken: string; refreshToken: string }>(
         "/clientLogin",
@@ -39,7 +40,7 @@ export default function Login() {
           "Bearer " + res.data.accessToken;
         const user = parseJwt(res.data.accessToken);
         dispatch(setUser(user));
-        router.push("/(tabs)");
+        router.push("/");
       })
       .catch((err) => {
         dispatch(

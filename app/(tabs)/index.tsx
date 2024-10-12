@@ -14,7 +14,7 @@ import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
 
-const socket = io("http://192.168.0.167:4444");
+const socket = io("http://192.168.189.76:4444");
 
 export default function Home() {
   const router = useRouter();
@@ -59,7 +59,6 @@ export default function Home() {
     }
 
     if (user?.mail && lastOrder?._id) {
-      console.log(user?.mail && lastOrder?._id);
       socket.on("message", (data) => {
         console.log(data);
       });
@@ -71,7 +70,6 @@ export default function Home() {
           orderId: string;
           status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled";
         }) => {
-          console.log(data);
           if (data.orderId == lastOrder?._id) {
             setLastOrder({
               ...lastOrder,

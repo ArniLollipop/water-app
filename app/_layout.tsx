@@ -14,7 +14,7 @@ import { Provider, useDispatch } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import useHttp from "@/utils/axios";
 import UIError from "@/components/UI/Error";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
 export {
@@ -69,7 +69,11 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "transparent",
+      }}>
       <StatusBar style="dark" hidden={false} backgroundColor="transparent" />
       <SafeAreaView
         shouldRasterizeIOS
@@ -94,6 +98,6 @@ function RootLayoutNav() {
           <UIError />
         </Provider>
       </SafeAreaView>
-    </>
+    </View>
   );
 }

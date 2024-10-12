@@ -227,8 +227,6 @@ const Order = () => {
             items={getFormattedAddresses(addresses)}
             select={selectedAddressId}
             setSelect={setSelectedAddressId}
-            // setNew={setIsAdding}
-            // addText="Добавить адрес"
           />
         </View>
         <View
@@ -252,20 +250,18 @@ const Order = () => {
           />
         </View>
 
-        {/* {!user?.chooseTime && (
-          <View style={orderPageStyles.timeBlock}>
-            <Text
-              style={{
-                color: Colors.text,
-                fontSize: 20,
-                fontWeight: "500",
-                marginBottom: 10,
-              }}>
-              Время доставки
-            </Text>
-            <UITimePickerModal minDate={new Date()} />
-          </View>
-        )} */}
+        <View style={orderPageStyles.timeBlock}>
+          <Text
+            style={{
+              color: Colors.text,
+              fontSize: 20,
+              fontWeight: "500",
+              marginBottom: 10,
+            }}>
+            Время доставки
+          </Text>
+          <UITimePickerModal minDate={new Date()} />
+        </View>
 
         <View
           style={{

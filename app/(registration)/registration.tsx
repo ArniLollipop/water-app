@@ -22,16 +22,18 @@ export default function Login() {
 
   const handleSendMail = async () => {
     setLoading(true);
+    console.log(formData.mail, "mail");
     if (isRecovery) {
       await useHttp
         .post("/sendMailRecovery", { mail: formData.mail })
         .then((res) => {
           router.push({
-            pathname: "/(registration)/confirmSms?isRecovery=true",
-            params: { mail: formData.mail },
+            pathname: "/(registration)/confirmSms",
+            params: { mail: formData.mail, isRecovery: "true" },
           });
         })
         .catch((err) => {
+          console.log(err);
           dispatch(
             setError({
               error: true,

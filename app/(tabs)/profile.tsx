@@ -37,7 +37,6 @@ export default function Profile() {
   const [firstAddress, setFirstAddress] = useState({} as IAddress);
 
   const handleLogOut = async () => {
-    console.log("logout");
     await SecureStore.setItemAsync("token", "");
     await SecureStore.setItemAsync("refreshToken", "");
     router.push("/(registration)/login");

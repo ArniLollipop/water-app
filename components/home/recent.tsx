@@ -3,8 +3,11 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import UIIcon from "../UI/Icon";
 import { router } from "expo-router";
 import useHttp from "@/utils/axios";
+import { useDispatch } from "react-redux";
+import { setError } from "@/store/slices/errorSlice";
 
 export default function HomeRecent(props: { lastOrder: IOrder }) {
+  const dispatch = useDispatch();
   const { lastOrder } = props;
 
   const isMoreThanFiveMinutes = () => {
@@ -28,14 +31,24 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
       .post("/updateOrder", {
         orderId: lastOrder._id,
         change: "status",
-        changeData: "onTheWay",
+        changeData: "cancelled",
       })
       .then(() => {
-        console.log(lastOrder._id);
-        console.log("order canceled");
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: "Заказ отменен",
+          })
+        );
       })
       .catch(() => {
-        console.log("error canceling order");
+        console.log("error");
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: "Ошибка отмены заказа",
+          })
+        );
       });
   };
 
@@ -47,24 +60,21 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             <Text style={recentStyles.innerTopText}>Недавнее</Text>
             <View style={recentStyles.innerTopRight}>
               <Text style={recentStyles.topRightText}>
-                {/* {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"} */}
-                {lastOrder.status}
+                {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"}
               </Text>
             </View>
           </View>
           {lastOrder.products.b12 > 0 && (
             <View style={recentStyles.innerBottom}>
-              <Text style={recentStyles.innerBottomRight}>12.5 л</Text>
               <Text style={recentStyles.innerBottomRight}>
-                {lastOrder.products.b12} шт
+                12.5 л - {lastOrder.products.b12} шт
               </Text>
             </View>
           )}
           {lastOrder.products.b19 > 0 && (
             <View style={recentStyles.innerBottom}>
-              <Text style={recentStyles.innerBottomRight}>18.9 л</Text>
               <Text style={recentStyles.innerBottomRight}>
-                {lastOrder.products.b19} шт
+                18.9 л - {lastOrder.products.b19} шт
               </Text>
             </View>
           )}
@@ -87,7 +97,7 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             </Text>
           </Pressable>
         )}
-        <Pressable style={recentStyles.button}>
+        <Pressable onPress={handleRepeatOrder} style={recentStyles.button}>
           <UIIcon name="recycle" />
           <Text style={recentStyles.buttonText}>ПОВТОРИТЬ</Text>
         </Pressable>

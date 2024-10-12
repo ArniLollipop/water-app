@@ -31,8 +31,8 @@ export default function Login() {
       .then((res) => {
         if (isRecovery) {
           router.push({
-            pathname: "/(registration)/create?isRecovery=true",
-            params: { mail: formData.mail },
+            pathname: "/(registration)/create",
+            params: { mail: formData.mail, isRecovery: "true" },
           });
         } else {
           router.push({
