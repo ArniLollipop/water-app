@@ -269,6 +269,7 @@ const Order = () => {
             Время доставки
           </Text>
           <UITimePickerModal
+            disabled={repeat == "true"}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             minDate={new Date()}

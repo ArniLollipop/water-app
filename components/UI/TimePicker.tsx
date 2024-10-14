@@ -15,12 +15,14 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 
 type UITimePickerModalProps = {
+  disabled: boolean;
   minDate: Date;
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
 };
 
 const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
+  disabled,
   minDate,
   selectedDate,
   setSelectedDate,
@@ -226,6 +228,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   return (
     <View>
       <UIButton
+        isLoading={disabled}
         text="Выбрать дату и время"
         onPress={toggleModal}
         type="default"
