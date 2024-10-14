@@ -1,3 +1,4 @@
+import Colors from "@/constants/Colors";
 import React, { useState, useRef } from "react";
 import {
   Modal,
@@ -9,15 +10,25 @@ import {
   ListRenderItem,
   Pressable,
 } from "react-native";
+import UIButton from "./Button";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 type UITimePickerModalProps = {
   minDate: Date;
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
 };
 
-const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
+const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
+  minDate,
+  selectedDate,
+  setSelectedDate,
+}) => {
+  const { user } = useSelector((state: RootState) => state.user);
+
   const [isVisible, setIsVisible] = useState(false);
   const [step, setStep] = useState<"date" | "time">("date");
-  const [selectedDate, setSelectedDate] = useState<Date>(minDate);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const dateScrollViewRef = useRef<FlatList<Date>>(null);
@@ -27,7 +38,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
   };
 
   const confirmDate = () => {
-    if (step === "date") {
+    if (step === "date" && user?.chooseTime) {
       setStep("time");
     } else {
       toggleModal();
@@ -68,6 +79,20 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
     dateScrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
+  const isWorkHour = () => {
+    const time = new Date(minDate).toLocaleTimeString();
+    const [hour, minute] = time
+      .split(":")
+      .map((item) => parseInt(item)) as number[];
+
+    const workStart = 9 * 60 * 60;
+    const second = hour * 60 * 60 + minute * 60;
+    const halfHour = 60 * 60 + 30 * 60;
+    const workEnd = 21 * 60 * 60;
+
+    return second + halfHour <= workEnd;
+  };
+
   const datesInMonth = () => {
     const daysInMonth = new Date(
       currentMonth.getFullYear(),
@@ -80,17 +105,22 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
       newDate.setHours(0, 0, 0, 0);
       return newDate;
     };
-
     const minDateReset = resetTime(minDate);
 
-    return Array.from({ length: daysInMonth }, (_, i) => {
+    const days = Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(
         currentMonth.getFullYear(),
         currentMonth.getMonth(),
         i + 1
       );
       return date;
-    }).filter((date) => resetTime(date) >= minDateReset);
+    });
+
+    if (isWorkHour()) {
+      return days.filter((date) => resetTime(date) >= minDateReset);
+    } else {
+      return days.filter((date) => resetTime(date) > minDateReset);
+    }
   };
 
   const renderDateItem: ListRenderItem<Date> = ({ item: date }) => {
@@ -135,12 +165,26 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
     const options = [];
     for (let i = start; i <= end; i += step) {
       const value = i < 10 ? `0${i}` : `${i}`;
+
+      const time = new Date(minDate).toLocaleTimeString();
+      const [hour, minute] = time
+        .split(":")
+        .map((item) => parseInt(item)) as number[];
+
+      const second = hour * 60 * 60 + minute * 60;
+      const halfHour = 60 * 60 + 30 * 60;
+      const workEnd = 21 * 60 * 60;
+
+      // проверка time + 1:30 >= workEnd иначе не показывать и остальные проверки
       const isDisabled =
-        selectedDate.getDate() === minDate.getDate() &&
-        selectedDate.getMonth() === minDate.getMonth() &&
-        selectedDate.getFullYear() === minDate.getFullYear() &&
-        ((isHour && i < minDate.getHours()) ||
-          (!isHour && i < minDate.getMinutes()));
+        second + halfHour >= workEnd ||
+        (isHour && i < 9) || // Начало рабочего дня
+        (isHour && i >= 21) || // Конец рабочего дня
+        (!isHour && i % 10 !== 0) || // Минуты только кратные 10
+        (isHour && (i + 1) * 60 * 60 < second + halfHour) || // Не показывать часы, если меньше чем час
+        (!isHour &&
+          new Date(selectedDate).getHours() * 60 * 60 + i * 60 <
+            second + halfHour); // Не показывать минуты, если меньше чем полчаса
 
       if (!isDisabled)
         options.push(
@@ -181,9 +225,11 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
 
   return (
     <View>
-      <TouchableOpacity onPress={toggleModal} style={styles.openButton}>
-        <Text style={styles.openButtonText}>Выбрать дату и время</Text>
-      </TouchableOpacity>
+      <UIButton
+        text="Выбрать дату и время"
+        onPress={toggleModal}
+        type="default"
+      />
 
       <Modal transparent={true} visible={isVisible} animationType="slide">
         <View style={styles.modalContainer}>
@@ -206,7 +252,6 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
                   })}
                 </Text>
                 <Pressable
-                  onLongPress={() => console.log("Long Press")}
                   onPress={goToNextMonth}
                   style={styles.paginationButton}>
                   <Text style={styles.paginationButtonText}>След</Text>
@@ -233,7 +278,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
                       selectedDate.getDate() === minDate.getDate()
                         ? minDate.getHours()
                         : 0,
-                      23,
+                      21,
                       1,
                       true
                     )}
@@ -251,7 +296,8 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
                 <View style={styles.picker}>
                   <Text style={styles.pickerLabel}>Минуты</Text>
                   <FlatList
-                    data={renderTimeOptions(0, 59, 5, false)}
+                    key={selectedDate.toTimeString()}
+                    data={renderTimeOptions(0, 59, 10, false)}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => item}
                     initialNumToRender={10}
@@ -290,13 +336,15 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({ minDate }) => {
           weekday: "long",
           day: "numeric",
           month: "long",
-        })} в ${selectedDate
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${selectedDate
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`}
+        })} `}
+        {user?.chooseTime &&
+          `в ${selectedDate
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${selectedDate
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`}
       </Text>
     </View>
   );
@@ -348,7 +396,7 @@ const styles = StyleSheet.create({
   },
   paginationButtonText: {
     fontSize: 16,
-    color: "#007AFF",
+    color: Colors.tint,
     zIndex: 100000,
   },
   paginationTitle: {
@@ -380,21 +428,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   selectedOption: {
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.tint,
     borderRadius: 8,
   },
   selectedOptionText: {
     color: "#fff",
   },
   disabledText: {
-    color: "#ccc",
+    color: Colors.disabled,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   cancelButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: Colors.disabled,
     padding: 10,
     borderRadius: 8,
     flex: 1,
@@ -402,7 +450,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   confirmButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: Colors.tint,
     padding: 10,
     borderRadius: 8,
     flex: 1,
@@ -413,7 +461,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedText: {
-    fontSize: 18,
+    color: Colors.text,
+    fontSize: 16,
     marginTop: 20,
     textAlign: "center",
   },

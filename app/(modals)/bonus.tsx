@@ -1,5 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
-import { View, Animated, StyleSheet, Text, Pressable } from "react-native";
+import {
+  View,
+  Animated,
+  StyleSheet,
+  Text,
+  Pressable,
+  Image,
+} from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import Colors from "@/constants/Colors";
 import sharedStyles from "@/styles/style";
@@ -8,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { setError } from "@/store/slices/errorSlice";
+import * as TaskManager from "expo-task-manager";
+import * as BackgroundFetch from "expo-background-fetch";
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
@@ -19,13 +28,54 @@ const NOTIFICATION_END_HOUR = 22; // 22:00
 const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
 const TIMER_KEY = "timer_key";
+const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+
+// Регистрация задачи для работы в фоне
+TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
+  const storedPressCount = await SecureStore.getItemAsync(PRESS_COUNT_KEY);
+  const storedCurrentAmount = await SecureStore.getItemAsync(
+    CURRENT_AMOUNT_KEY
+  );
+  const storedTimer = await SecureStore.getItemAsync(TIMER_KEY);
+
+  const pressCountValue = storedPressCount ? parseInt(storedPressCount, 10) : 0;
+  const currentAmountValue = storedCurrentAmount
+    ? parseInt(storedCurrentAmount, 10)
+    : 0;
+  const timerValue = storedTimer ? parseInt(storedTimer, 10) : null;
+
+  if (timerValue !== null && timerValue <= 0) {
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (
+      currentHour >= NOTIFICATION_START_HOUR &&
+      currentHour < NOTIFICATION_END_HOUR
+    ) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Время пить воду!",
+          body: "Не забудьте выпить свой стакан воды.",
+        },
+        trigger: { seconds: 1 },
+      });
+      return BackgroundFetch.Result.NewData;
+    }
+  }
+  return BackgroundFetch.Result.NoData;
+});
+
+BackgroundFetch.registerTaskAsync(BACKGROUND_TASK_NAME, {
+  minimumInterval: NOTIFICATION_INTERVAL_MS, // 1 час
+  stopOnTerminate: false, // Приложение будет работать после закрытия
+  startOnBoot: true, // Приложение будет работать после перезапуска устройства
+});
 
 const Bonus = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
   const userDailyWaterInMl =
     (user?.dailyWater && user.dailyWater * 1000) || 2000;
-  const totalPresses = Math.floor((userDailyWaterInMl || 2000) / ML_PER_PRESS);
+  const totalPresses = Math.floor(userDailyWaterInMl / ML_PER_PRESS);
 
   const waterLevels = Array.from(
     { length: totalPresses },
@@ -39,7 +89,6 @@ const Bonus = () => {
   const [currentAmount, setCurrentAmount] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false); // Добавляем состояние для проверки загрузки данных
 
   // Request permissions on component mount
   useEffect(() => {
@@ -82,7 +131,7 @@ const Bonus = () => {
         setTimer(timerValue ?? NOTIFICATION_INTERVAL_MS);
         setIsTimerRunning(!!timerValue);
 
-        // Анимация уже заполненных уровней воды (снизу вверх)
+        // Анимация уже заполненных уровней воды
         for (let i = 0; i < pressCountValue; i++) {
           Animated.timing(waterLevels[i], {
             toValue: 100,
@@ -90,8 +139,6 @@ const Bonus = () => {
             useNativeDriver: false,
           }).start();
         }
-
-        setIsDataLoaded(true); // Устанавливаем флаг, что данные загружены
       } catch (error) {
         console.error("Ошибка при загрузке данных из SecureStore:", error);
       }
@@ -103,7 +150,7 @@ const Bonus = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
-    if (isTimerRunning && timer && currentAmount !== null && isDataLoaded) {
+    if (isTimerRunning && timer && timer > 0) {
       interval = setInterval(() => {
         setTimer((prevTimer) => {
           if (!prevTimer) return null;
@@ -120,7 +167,7 @@ const Bonus = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isTimerRunning, timer, currentAmount, isDataLoaded]);
+  }, [isTimerRunning, timer]);
 
   // Function to handle end of timer
   const handleTimerEnd = async () => {
@@ -145,8 +192,8 @@ const Bonus = () => {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Time to drink water!",
-          body: "Don't forget to drink your glass of water.",
+          title: "Время пить воду!",
+          body: "Не забудьте выпить свой стакан воды.",
         },
         trigger: { seconds: 1 },
       });
@@ -168,16 +215,6 @@ const Bonus = () => {
     } catch (error) {
       console.error("Error saving data to SecureStore:", error);
     }
-  };
-
-  const getRandomDirection = () => {
-    const directions = [
-      { rotateX: 15, rotateY: 0 },
-      { rotateX: -15, rotateY: 0 },
-      { rotateX: 0, rotateY: 15 },
-      { rotateX: 0, rotateY: -15 },
-    ];
-    return directions[Math.floor(Math.random() * directions.length)];
   };
 
   const handlePress = async () => {
@@ -219,134 +256,91 @@ const Bonus = () => {
         useNativeDriver: false,
       }).start();
 
-      const { rotateX, rotateY } = getRandomDirection();
-
-      Animated.parallel([
-        Animated.timing(rotationX, {
-          toValue: rotateX,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(rotationY, {
-          toValue: rotateY,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        Animated.parallel([
-          Animated.timing(rotationX, {
-            toValue: 0,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-          Animated.timing(rotationY, {
-            toValue: 0,
-            duration: 150,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      });
-
       setIsTimerRunning(true);
     }
   };
 
-  // Format timer for display
-  const formatTime = (milliseconds: number) => {
-    if (milliseconds <= 0) return "0:00";
-    else if (milliseconds >= NOTIFICATION_INTERVAL_MS) return "1:00:00";
+  const formatTime = (timer: number) => {
+    const hours = Math.floor(timer / 3600000);
+    const minutes = Math.floor((timer % 3600000) / 60000);
+    const seconds = Math.floor((timer % 60000) / 1000);
 
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
+    return `${hours}:${minutes}:${seconds}`;
   };
-
-  const interpolateRotationX = rotationX.interpolate({
-    inputRange: [-15, 15],
-    outputRange: ["-15deg", "15deg"],
-  });
-
-  const interpolateRotationY = rotationY.interpolate({
-    inputRange: [-15, 15],
-    outputRange: ["-15deg", "15deg"],
-  });
 
   return (
     <View style={sharedStyles.container}>
-      {/* Display water levels */}
-      <View style={styles.waterContainer}>
-        <View style={styles.leftItems}>
-          {waterLevels.map((waterLevel, index) => (
-            <View
-              key={index}
-              style={[
-                styles.leftItem,
-                index === 0 && styles.firstItem,
-                index === waterLevels.length - 1 && styles.lastItem,
-                { height: 220 / totalPresses },
-              ]}>
-              <Animated.View
+      <View style={sharedStyles.container}>
+        {/* Display water levels */}
+        <View style={styles.waterContainer}>
+          <View style={styles.leftItems}>
+            {waterLevels.map((waterLevel, index) => (
+              <View
+                key={index}
                 style={[
-                  styles.waterFill,
-                  {
-                    height: waterLevel.interpolate({
-                      inputRange: [0, 100],
-                      outputRange: ["0%", "100%"],
-                    }),
-                  },
-                ]}
-              />
-            </View>
-          ))}
+                  styles.leftItem,
+                  index === 0 && styles.firstItem,
+                  index === waterLevels.length - 1 && styles.lastItem,
+                  { height: 220 / totalPresses },
+                ]}>
+                <Animated.View
+                  style={[
+                    styles.waterFill,
+                    {
+                      height: waterLevel.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ["0%", "100%"],
+                      }),
+                    },
+                  ]}
+                />
+              </View>
+            ))}
+          </View>
+          <Pressable onPress={handlePress} style={styles.imageContainer}>
+            <Image
+              source={require("../../assets/images/bonusImg.png")}
+              style={{
+                height: 200,
+                width: 200,
+                objectFit: "contain",
+              }}
+            />
+          </Pressable>
         </View>
 
-        <Pressable onPress={handlePress} style={styles.imageContainer}>
-          <Animated.Image
-            source={require("@/assets/images/bonusImg.jpg")}
-            style={[
-              styles.image,
-              {
-                transform: [
-                  { perspective: 1000 },
-                  { rotateX: interpolateRotationX },
-                  { rotateY: interpolateRotationY },
-                ],
-              },
-            ]}
-          />
-        </Pressable>
-      </View>
+        <View style={styles.infoBlocksContainer}>
+          <View style={styles.infoBlock}>
+            <UIIcon name="waterButton" />
+            <Text style={styles.infoBlockText}>{pressCount}</Text>
+          </View>
+          <View style={styles.infoBlock}>
+            <UIIcon name="alarmClock" />
+            <Text style={styles.infoBlockText}>
+              {isTimerRunning ? formatTime(timer!) : "1:00:00"}
+            </Text>
+          </View>
+          <View style={styles.infoBlock}>
+            <UIIcon name="water" />
+            <Text style={styles.infoBlockText}>
+              {(currentAmount + 250) / 1000} л
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.infoBlocksContainer}>
-        <View style={styles.infoBlock}>
-          <UIIcon name="waterButton" />
-          <Text style={styles.infoBlockText}>{pressCount}</Text>
-        </View>
-        <View style={styles.infoBlock}>
-          <UIIcon name="alarmClock" />
-          <Text style={styles.infoBlockText}>
-            {isTimerRunning ? formatTime(timer!) : "1:00:00"}
-          </Text>
-        </View>
-        <View style={styles.infoBlock}>
-          <UIIcon name="water" />
-          <Text style={styles.infoBlockText}>{currentAmount / 1000} л</Text>
-        </View>
-      </View>
-
-      <View style={styles.rules}>
-        <View>
-          <Text style={styles.rulesHead}>Правила начисления</Text>
-          <Text style={styles.rulesText}>
-            1. За каждый 1 выпитый стакан начисляется 2 бонуса
-          </Text>
-          <Text style={styles.rulesText}>
-            2. За 1000 бонусов можно купить 1 л воды
-          </Text>
-          <Text style={styles.rulesText}>
-            3. Каждые 40 минут можно выпить 1 стакан
-          </Text>
+        <View style={styles.rules}>
+          <View>
+            <Text style={styles.rulesHead}>Правила начисления</Text>
+            <Text style={styles.rulesText}>
+              1. За каждый 1 выпитый стакан начисляется 2 бонуса
+            </Text>
+            <Text style={styles.rulesText}>
+              2. За 1000 бонусов можно купить 1 л воды
+            </Text>
+            <Text style={styles.rulesText}>
+              3. Каждые 40 минут можно выпить 1 стакан
+            </Text>
+          </View>
         </View>
       </View>
     </View>
@@ -373,9 +367,11 @@ const styles = StyleSheet.create({
     height: 200,
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: 200,
+    height: 200,
     borderRadius: 10,
+    zIndex: 1000,
+    overflow: "hidden",
   },
   infoBlocksContainer: {
     flexDirection: "row",

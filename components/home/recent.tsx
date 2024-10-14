@@ -3,12 +3,14 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import UIIcon from "../UI/Icon";
 import { router } from "expo-router";
 import useHttp from "@/utils/axios";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setError } from "@/store/slices/errorSlice";
+import { RootState } from "@/store/store";
 
 export default function HomeRecent(props: { lastOrder: IOrder }) {
   const dispatch = useDispatch();
   const { lastOrder } = props;
+  const { user } = useSelector((state: RootState) => state.user);
 
   const isMoreThanFiveMinutes = () => {
     if (!lastOrder.createdAt) return false;
@@ -60,7 +62,13 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             <Text style={recentStyles.innerTopText}>Недавнее</Text>
             <View style={recentStyles.innerTopRight}>
               <Text style={recentStyles.topRightText}>
-                {lastOrder.status == "awaitingOrder" ? "В очереди" : "В пути"}
+                {lastOrder?.status == "awaitingOrder"
+                  ? "В очереди"
+                  : lastOrder?.status == "onTheWay"
+                  ? "В пути"
+                  : lastOrder?.status == "delivered"
+                  ? "Доставлен"
+                  : "Отменен"}
               </Text>
             </View>
           </View>
@@ -89,14 +97,15 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
       </View>
 
       <View style={recentStyles.buttons}>
-        {isMoreThanFiveMinutes() && (
+        {/* !isMoreThanFiveMinutes() && lastOrder.status == "awaitingOrder" && */}
+        {
           <Pressable onPress={handleCancelOrder} style={recentStyles.button}>
             <UIIcon name="trash" />
             <Text style={{ ...recentStyles.buttonText, ...recentStyles.tint }}>
               ОТМЕНИТЬ
             </Text>
           </Pressable>
-        )}
+        }
         <Pressable onPress={handleRepeatOrder} style={recentStyles.button}>
           <UIIcon name="recycle" />
           <Text style={recentStyles.buttonText}>ПОВТОРИТЬ</Text>

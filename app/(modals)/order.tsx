@@ -26,6 +26,7 @@ const Order = () => {
   const [sum, setSum] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const getCart = async () => {
     await useHttp
@@ -102,18 +103,25 @@ const Order = () => {
 
       setIsLoading(true);
 
+      let form = {
+        clientId: user?._id,
+        address: {
+          actual: address?.street + " " + address?.house,
+          link: address?.link,
+        },
+        products: user?.cart,
+        // clientNotes: "",
+        date: {
+          d: selectedDate.toISOString().split("T")[0],
+          time:
+            user?.chooseTime &&
+            selectedDate.toISOString().split("T")[1].split(".")[0],
+        },
+        opForm: selectedPayment,
+      };
+
       await useHttp
-        .post<{ success: boolean }>("/addOrderClientMobile", {
-          clientId: user?._id,
-          address: {
-            actual: address?.street + " " + address?.house,
-            link: address?.link,
-          },
-          products: user?.cart,
-          // clientNotes: "",
-          // date: new Date(),
-          opForm: selectedPayment,
-        })
+        .post<{ success: boolean }>("/addOrderClientMobile", form)
         .then(async (res) => {
           if (res.data.success) {
             if (!repeat) await cleanCart();
@@ -260,7 +268,11 @@ const Order = () => {
             }}>
             Время доставки
           </Text>
-          <UITimePickerModal minDate={new Date()} />
+          <UITimePickerModal
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            minDate={new Date()}
+          />
         </View>
 
         <View
