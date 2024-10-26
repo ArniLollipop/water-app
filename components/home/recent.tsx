@@ -97,15 +97,14 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
       </View>
 
       <View style={recentStyles.buttons}>
-        {/* !isMoreThanFiveMinutes() && lastOrder.status == "awaitingOrder" && */}
-        {
+        {!isMoreThanFiveMinutes() && lastOrder.status == "awaitingOrder" && (
           <Pressable onPress={handleCancelOrder} style={recentStyles.button}>
             <UIIcon name="trash" />
             <Text style={{ ...recentStyles.buttonText, ...recentStyles.tint }}>
               ОТМЕНИТЬ
             </Text>
           </Pressable>
-        }
+        )}
         <Pressable onPress={handleRepeatOrder} style={recentStyles.button}>
           <UIIcon name="recycle" />
           <Text style={recentStyles.buttonText}>ПОВТОРИТЬ</Text>

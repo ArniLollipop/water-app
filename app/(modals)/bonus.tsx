@@ -15,8 +15,6 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { setError } from "@/store/slices/errorSlice";
-import * as TaskManager from "expo-task-manager";
-import * as BackgroundFetch from "expo-background-fetch";
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
@@ -29,46 +27,6 @@ const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
 const TIMER_KEY = "timer_key";
 const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
-
-// Регистрация задачи для работы в фоне
-TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
-  const storedPressCount = await SecureStore.getItemAsync(PRESS_COUNT_KEY);
-  const storedCurrentAmount = await SecureStore.getItemAsync(
-    CURRENT_AMOUNT_KEY
-  );
-  const storedTimer = await SecureStore.getItemAsync(TIMER_KEY);
-
-  const pressCountValue = storedPressCount ? parseInt(storedPressCount, 10) : 0;
-  const currentAmountValue = storedCurrentAmount
-    ? parseInt(storedCurrentAmount, 10)
-    : 0;
-  const timerValue = storedTimer ? parseInt(storedTimer, 10) : null;
-
-  if (timerValue !== null && timerValue <= 0) {
-    const now = new Date();
-    const currentHour = now.getHours();
-    if (
-      currentHour >= NOTIFICATION_START_HOUR &&
-      currentHour < NOTIFICATION_END_HOUR
-    ) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Время пить воду!",
-          body: "Не забудьте выпить свой стакан воды.",
-        },
-        trigger: { seconds: 1 },
-      });
-      return BackgroundFetch.Result.NewData;
-    }
-  }
-  return BackgroundFetch.Result.NoData;
-});
-
-BackgroundFetch.registerTaskAsync(BACKGROUND_TASK_NAME, {
-  minimumInterval: NOTIFICATION_INTERVAL_MS, // 1 час
-  stopOnTerminate: false, // Приложение будет работать после закрытия
-  startOnBoot: true, // Приложение будет работать после перезапуска устройства
-});
 
 const Bonus = () => {
   const dispatch = useDispatch();
@@ -271,7 +229,6 @@ const Bonus = () => {
   return (
     <View style={sharedStyles.container}>
       <View style={sharedStyles.container}>
-        {/* Display water levels */}
         <View style={styles.waterContainer}>
           <View style={styles.leftItems}>
             {waterLevels.map((waterLevel, index) => (

@@ -229,7 +229,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
     <View>
       <UIButton
         isLoading={disabled}
-        text="Выбрать дату и время"
+        text={user?.chooseTime ? "Выбрать дату и время" : "Выбрать дату"}
         onPress={toggleModal}
         type="default"
       />
