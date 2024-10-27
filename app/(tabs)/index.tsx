@@ -14,7 +14,7 @@ import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
 
-const socket = io("http://192.168.0.197:4444");
+const socket = io(process.env.EXPO_PUBLIC_BASE_URL);
 
 export default function Home() {
   const router = useRouter();

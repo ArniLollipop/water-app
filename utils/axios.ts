@@ -8,9 +8,8 @@ import { router } from "expo-router";
 
 let token = "" as string | null;
 let refreshToken = "" as string | null;
-
 const useHttp = axios.create({
-  baseURL: "http://192.168.0.197:4444",
+  baseURL: process.env.EXPO_PUBLIC_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     authorization: "Bearer " + token,

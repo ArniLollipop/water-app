@@ -165,8 +165,14 @@ const Order = () => {
         dispatch(setCart({ cart: res.data.order.products }));
         setSelectedPayment(res.data.order.opForm as string);
       })
-      .catch(() => {
-        console.log("error");
+      .catch((error) => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage:
+              "Не удалось получить последний заказ" + error?.response?.status,
+          })
+        );
       });
   }
 

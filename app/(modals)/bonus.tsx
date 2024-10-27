@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   leftItems: {
-    flexDirection: "column",
+    flexDirection: "column-reverse",
     justifyContent: "space-between",
     padding: 10,
     position: "absolute",
@@ -384,12 +384,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   lastItem: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  firstItem: {
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+  },
+  firstItem: {
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
   waterFill: {
     position: "absolute",
