@@ -22,12 +22,9 @@ const useHttp = axios.create({
 })();
 
 let isRetrying = false;
-let refreshTokenPromise: any | null = null;
 
 useHttp.interceptors.response.use(null, async (error) => {
   const originalRequest = error.config;
-
-  console.log(error);
 
   if (
     error.response?.status === 403 &&
@@ -37,48 +34,37 @@ useHttp.interceptors.response.use(null, async (error) => {
   ) {
     console.log("перезагрузка");
     isRetrying = true;
-    refreshTokenPromise = async () => {
-      await useHttp
-        .post<{ accessToken: string; refreshToken: string }>("/refreshToken", {
-          refreshToken,
-        })
-        .then(async (res) => {
-          console.log("все тема");
 
-          await SecureStore.setItemAsync("token", res.data.accessToken);
-          await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
+    try {
+      const res = await useHttp.post<{
+        accessToken: string;
+        refreshToken: string;
+      }>("/refreshToken", {
+        refreshToken,
+      });
 
-          store.dispatch(setUser(parseJwt(res.data.accessToken)));
+      console.log("все тема");
 
-          token = res.data.accessToken;
-          refreshToken = res.data.refreshToken;
+      await SecureStore.setItemAsync("token", res.data.accessToken);
+      await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
 
-          console.log(originalRequest, "для рефреша");
-          originalRequest.headers.Authorization = "Bearer " + token;
-          router.replace("/");
-          return await useHttp.request(originalRequest);
-        })
-        .catch(async () => {
-          console.log("все плохо");
-          await SecureStore.setItemAsync("token", "");
-          await SecureStore.setItemAsync("refreshToken", "");
-          store.dispatch(
-            setError({
-              error: true,
-              errorMessage: error.response?.data.message,
-            })
-          );
-          store.dispatch(setUser(null));
-          router.push("/(registration)/login");
-          throw error;
-        })
-        .finally(() => {
-          isRetrying = false;
-        });
-    };
+      store.dispatch(setUser(parseJwt(res.data.accessToken)));
 
-    if (refreshTokenPromise) {
-      await refreshTokenPromise();
+      token = res.data.accessToken;
+      refreshToken = res.data.refreshToken;
+
+      originalRequest.headers.Authorization = "Bearer " + token;
+
+      isRetrying = false;
+      return await useHttp.request(originalRequest);
+    } catch (refreshError) {
+      console.log("все плохо");
+      await SecureStore.setItemAsync("token", "");
+      await SecureStore.setItemAsync("refreshToken", "");
+      store.dispatch(setUser(null));
+      router.push("/(registration)/login");
+      isRetrying = false;
+      throw error;
     }
   } else if (error.response?.status === 403 && !refreshToken) {
     await SecureStore.setItemAsync("token", "");

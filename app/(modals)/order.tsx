@@ -81,6 +81,13 @@ const Order = () => {
           errorMessage: "Выберите адрес доставки",
         })
       );
+    } else if (selectedPayment === "" || selectedPayment == null) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "Выберите способ оплаты",
+        })
+      );
     } else if (user?.cart?.b12 == 0 && user.cart.b19) {
       dispatch(
         setError({
@@ -275,7 +282,11 @@ const Order = () => {
             Время доставки
           </Text>
           <UITimePickerModal
-            disabled={repeat == "true"}
+            disabled={
+              repeat == "true" &&
+              (lastOrder?.status == "awaitingOrder" ||
+                lastOrder?.status == "onTheWay")
+            }
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             minDate={new Date()}

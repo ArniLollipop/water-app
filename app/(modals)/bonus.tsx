@@ -15,18 +15,62 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { setError } from "@/store/slices/errorSlice";
+import * as TaskManager from "expo-task-manager";
+import * as BackgroundFetch from "expo-background-fetch";
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
 const NOTIFICATION_INTERVAL_MS = 3600000; // 1 час
 const NOTIFICATION_START_HOUR = 9; // 9:00
 const NOTIFICATION_END_HOUR = 22; // 22:00
+const START_TIME_KEY = "start_time_key";
 
 // Ключи для SecureStore
 const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
 const TIMER_KEY = "timer_key";
 const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+
+// Определяем фоновую задачу
+TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
+  const startTime = await SecureStore.getItemAsync(START_TIME_KEY);
+
+  if (startTime) {
+    const currentTime = Date.now();
+    const elapsed = currentTime - parseInt(startTime, 10);
+
+    if (elapsed >= NOTIFICATION_INTERVAL_MS) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      if (
+        currentHour >= NOTIFICATION_START_HOUR &&
+        currentHour < NOTIFICATION_END_HOUR
+      ) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Время пить воду!",
+            body: "Не забудьте выпить свой стакан воды.",
+          },
+          trigger: { seconds: 1 },
+        });
+
+        // Очистим таймер после отправки уведомления
+        await SecureStore.deleteItemAsync(START_TIME_KEY);
+      }
+
+      return "new_data";
+    }
+  }
+
+  return "no_data";
+});
+
+// Регистрация фоновой задачи
+BackgroundFetch.registerTaskAsync(BACKGROUND_TASK_NAME, {
+  minimumInterval: 60 * 60, // Интервал 1 час
+  stopOnTerminate: false, // Приложение будет работать после закрытия
+  startOnBoot: true, // Приложение будет работать после перезагрузки устройства
+});
 
 const Bonus = () => {
   const dispatch = useDispatch();
@@ -40,15 +84,12 @@ const Bonus = () => {
     () => useRef(new Animated.Value(0)).current
   );
 
-  const rotationX = useRef(new Animated.Value(0)).current;
-  const rotationY = useRef(new Animated.Value(0)).current;
-
   const [pressCount, setPressCount] = useState(0);
   const [currentAmount, setCurrentAmount] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // Request permissions on component mount
+  // Запрос разрешений на уведомления
   useEffect(() => {
     const requestPermissions = async () => {
       try {
@@ -64,7 +105,7 @@ const Bonus = () => {
     requestPermissions();
   }, []);
 
-  // Load data from SecureStore on component mount
+  // Загрузка данных из SecureStore при монтировании компонента
   useEffect(() => {
     const loadStoredData = async () => {
       try {
@@ -74,7 +115,7 @@ const Bonus = () => {
         const storedCurrentAmount = await SecureStore.getItemAsync(
           CURRENT_AMOUNT_KEY
         );
-        const storedTimer = await SecureStore.getItemAsync(TIMER_KEY);
+        const storedStartTime = await SecureStore.getItemAsync(START_TIME_KEY);
 
         const pressCountValue = storedPressCount
           ? parseInt(storedPressCount, 10)
@@ -82,12 +123,22 @@ const Bonus = () => {
         const currentAmountValue = storedCurrentAmount
           ? parseInt(storedCurrentAmount, 10)
           : 0;
-        const timerValue = storedTimer ? parseInt(storedTimer, 10) : null;
 
         setPressCount(pressCountValue);
         setCurrentAmount(currentAmountValue);
-        setTimer(timerValue ?? NOTIFICATION_INTERVAL_MS);
-        setIsTimerRunning(!!timerValue);
+
+        if (storedStartTime) {
+          const currentTime = Date.now();
+          const elapsed = currentTime - parseInt(storedStartTime, 10);
+
+          if (elapsed < NOTIFICATION_INTERVAL_MS) {
+            setTimer(NOTIFICATION_INTERVAL_MS - elapsed);
+            setIsTimerRunning(true);
+          } else {
+            setTimer(null);
+            setIsTimerRunning(false);
+          }
+        }
 
         // Анимация уже заполненных уровней воды
         for (let i = 0; i < pressCountValue; i++) {
@@ -104,7 +155,7 @@ const Bonus = () => {
     loadStoredData();
   }, []);
 
-  // Timer countdown
+  // Таймер обратного отсчета
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
 
@@ -127,26 +178,12 @@ const Bonus = () => {
     };
   }, [isTimerRunning, timer]);
 
-  // Function to handle end of timer
+  // Обработка завершения таймера
   const handleTimerEnd = async () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    // Notification restrictions between 22:00 and 9:00
-    if (
-      currentHour >= NOTIFICATION_END_HOUR ||
-      currentHour < NOTIFICATION_START_HOUR
-    ) {
-      return;
-    }
-
-    const newAmount = Math.max(currentAmount - ML_PER_PRESS, 0);
-    setCurrentAmount(newAmount);
-    setTimer(NOTIFICATION_INTERVAL_MS);
+    setTimer(null);
     setIsTimerRunning(false);
-    await saveDataToStore(pressCount, newAmount, NOTIFICATION_INTERVAL_MS);
 
-    // Send notification
+    // Отправляем уведомление
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -158,25 +195,18 @@ const Bonus = () => {
     } catch (error) {
       console.error("Error sending notification:", error);
     }
+
+    await SecureStore.deleteItemAsync(START_TIME_KEY);
   };
 
-  // Function to save data to SecureStore
-  const saveDataToStore = async (
-    pressCount: number,
-    amount: number,
-    timerValue: number
-  ) => {
-    try {
-      await SecureStore.setItemAsync(PRESS_COUNT_KEY, pressCount.toString());
-      await SecureStore.setItemAsync(CURRENT_AMOUNT_KEY, amount.toString());
-      await SecureStore.setItemAsync(TIMER_KEY, timerValue.toString());
-    } catch (error) {
-      console.error("Error saving data to SecureStore:", error);
-    }
+  // Функция для сохранения данных о начале таймера
+  const saveTimerStart = async () => {
+    const startTime = Date.now().toString();
+    await SecureStore.setItemAsync(START_TIME_KEY, startTime);
   };
 
   const handlePress = async () => {
-    if (timer !== null && timer > 0 && timer !== NOTIFICATION_INTERVAL_MS) {
+    if (isTimerRunning) {
       dispatch(
         setError({
           error: true,
@@ -204,7 +234,7 @@ const Bonus = () => {
       setPressCount(newPressCount);
       setCurrentAmount(newAmount);
       setTimer(NOTIFICATION_INTERVAL_MS);
-      await saveDataToStore(newPressCount, newAmount, NOTIFICATION_INTERVAL_MS);
+      await saveTimerStart();
 
       const levelIndex = newPressCount - 1;
 
@@ -229,6 +259,7 @@ const Bonus = () => {
   return (
     <View style={sharedStyles.container}>
       <View style={sharedStyles.container}>
+        {/* Display water levels */}
         <View style={styles.waterContainer}>
           <View style={styles.leftItems}>
             {waterLevels.map((waterLevel, index) => (
@@ -304,6 +335,8 @@ const Bonus = () => {
   );
 };
 
+export default Bonus;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -366,7 +399,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   leftItems: {
-    flexDirection: "column-reverse",
+    flexDirection: "column",
     justifyContent: "space-between",
     padding: 10,
     position: "absolute",
@@ -384,12 +417,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   lastItem: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  firstItem: {
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
+  },
+  firstItem: {
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   waterFill: {
     position: "absolute",
@@ -399,5 +432,3 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 123, 255, 0.3)",
   },
 });
-
-export default Bonus;
