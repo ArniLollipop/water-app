@@ -179,7 +179,7 @@ const recentStyles = StyleSheet.create({
     top: 0,
     zIndex: 5,
     backgroundColor: Colors.tint,
-    height: "160%",
+    height: "140%",
     justifyContent: "center",
     alignItems: "center",
     padding: 5,
