@@ -318,15 +318,17 @@ const Bonus = () => {
 
         <View style={styles.rules}>
           <View>
-            <Text style={styles.rulesHead}>Правила начисления</Text>
             <Text style={styles.rulesText}>
-              1. За каждый 1 выпитый стакан начисляется 2 бонуса
+              1. За каждый выпитый стакан воды — 5 бонусов.
             </Text>
             <Text style={styles.rulesText}>
-              2. За 1000 бонусов можно купить 1 л воды
+              2. За выполнение ежедневной цели — +20 бонусов.
             </Text>
             <Text style={styles.rulesText}>
-              3. Каждые 40 минут можно выпить 1 стакан
+              3. За каждые 500 бонусов — скидка 10% на аксессуары (до 50%).
+            </Text>
+            <Text style={styles.rulesText}>
+              4. За каждый заказ воды — +50 бонусов.
             </Text>
           </View>
         </View>
@@ -396,10 +398,10 @@ const styles = StyleSheet.create({
   rulesText: {
     marginVertical: 5,
     color: Colors.text,
-    fontSize: 20,
+    fontSize: 16,
   },
   leftItems: {
-    flexDirection: "column",
+    flexDirection: "column-reverse",
     justifyContent: "space-between",
     padding: 10,
     position: "absolute",
@@ -417,12 +419,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   lastItem: {
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  firstItem: {
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+  },
+  firstItem: {
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
   },
   waterFill: {
     position: "absolute",
