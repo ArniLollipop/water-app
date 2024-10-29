@@ -15,7 +15,7 @@ export default function HomeCategories() {
         style={categoryStyles.container}>
         <Pressable
           style={categoryStyles.block}
-          onPress={() => router.push("(modals)/bonus")}>
+          onPress={() => router.push("/(modals)/bonus")}>
           <View style={categoryStyles.innerBlock}>
             <Text
               style={{
@@ -58,7 +58,7 @@ export default function HomeCategories() {
           </View>
         </View>
         <Pressable
-          onPress={() => router.push("(registration)/login")}
+          onPress={() => router.push("/(registration)/login")}
           style={categoryStyles.block}>
           <View style={categoryStyles.innerBlock}>
             <Text
