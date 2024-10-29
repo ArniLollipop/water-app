@@ -148,7 +148,7 @@ const Address = () => {
               onPress={routeByLink}
               type="filled"
               placeholder="Cсылка"
-              value={newAddress.link}
+              value={newAddress.link ? "Ссылка адреса" : ""}
             />
             <Text style={{ fontSize: 13, color: Colors.disabled }}>
               Сгенерируйте ссылку по карте 2ГИС и проверьте правильно ли написан

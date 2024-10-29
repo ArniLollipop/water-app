@@ -12,14 +12,30 @@ import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
+import { usePathname } from "expo-router";
 
 const Settings = () => {
+  const pathname = usePathname();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [standardWaterCount, setStandardWaterCount] = useState("2");
   const [editable, setEditable] = useState("");
+
+  const getUser = async () => {
+    await useHttp
+      .post<{ clientData: { _doc: IUser }; success: true }>(
+        "/getClientDataMobile",
+        {
+          mail: user?.mail,
+        }
+      )
+      .then((res) => {
+        if (res.data.clientData._doc.dailyWater)
+          setStandardWaterCount(res.data.clientData._doc.dailyWater.toString());
+      });
+  };
 
   // Проверка наличия разрешения на отправку уведомлений при загрузке компонента
   useEffect(() => {
@@ -31,7 +47,9 @@ const Settings = () => {
     };
 
     checkNotificationPermission();
-  }, []);
+    console.log(pathname);
+    if (pathname == "/settings") getUser();
+  }, [pathname]);
 
   // Функция запроса разрешения на отправку уведомлений
   const askNotificationPermission = async () => {
@@ -67,23 +85,31 @@ const Settings = () => {
   };
 
   const handleSaveSetting = async () => {
-    if (user)
+    const numberOfWater = parseFloat(standardWaterCount);
+
+    if (numberOfWater < 1 || numberOfWater > 3) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "Норма воды должна быть в пределах от 1 до 3 литров",
+        })
+      );
+      return;
+    } else if (user) {
       await useHttp
         .post("/updateClientDataMobile", {
           mail: user.mail,
           field: "dailyWater",
-          value: parseInt(standardWaterCount),
+          value: numberOfWater,
         })
-        .then((res) => {
-          if (res.data.success) {
-            setEditable("");
-            dispatch(
-              setUser({
-                ...user,
-                dailyWater: parseInt(standardWaterCount),
-              })
-            );
-          }
+        .then(() => {
+          setEditable("");
+          dispatch(
+            setUser({
+              ...user,
+              dailyWater: numberOfWater,
+            })
+          );
         })
         .catch((err) => {
           dispatch(
@@ -93,6 +119,7 @@ const Settings = () => {
             })
           );
         });
+    }
   };
 
   return (
@@ -126,7 +153,7 @@ const Settings = () => {
           }
         />
         <MaskedUIInput
-          mask="9|99"
+          mask="9.99"
           editable={editable == "waterCount"}
           value={standardWaterCount}
           onChangeText={(count) => setStandardWaterCount(count)}

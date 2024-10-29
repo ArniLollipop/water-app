@@ -26,7 +26,7 @@ const Order = () => {
   const [sum, setSum] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null as Date | null);
 
   const getCart = async () => {
     await useHttp
@@ -95,6 +95,13 @@ const Order = () => {
           errorMessage: "Выберите товары для заказа",
         })
       );
+    } else if (!selectedDate) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "Выберите дату доставки",
+        })
+      );
     } else {
       const address = addresses.find((a) => a._id === selectedAddressId);
 
@@ -119,10 +126,11 @@ const Order = () => {
         products: user?.cart,
         // clientNotes: "",
         date: {
-          d: selectedDate.toISOString().split("T")[0],
+          d: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
           time:
-            user?.chooseTime &&
-            selectedDate.toISOString().split("T")[1].split(".")[0],
+            user?.chooseTime && selectedDate
+              ? selectedDate.toISOString().split("T")[1].split(".")[0]
+              : "",
         },
         opForm: selectedPayment,
       };
@@ -256,6 +264,7 @@ const Order = () => {
             marginTop: 20,
           }}>
           {/* cash coupon card transfer postpay */}
+
           <UIRadio
             title="Способ оплаты"
             items={[
@@ -264,6 +273,11 @@ const Order = () => {
               { id: "card", text: "Картой" },
               { id: "transfer", text: "Переводом" },
               { id: "postpay", text: "Постоплата" },
+              { id: "fakt", text: "Нал/Карта/QR" },
+              { id: "postpay", text: "Постоплата" },
+              { id: "credit", text: "В долг" },
+              { id: "coupon", text: "Талоны" },
+              { id: "mixed", text: "Смешанная" },
             ]}
             select={selectedPayment}
             setSelect={setSelectedPayment}

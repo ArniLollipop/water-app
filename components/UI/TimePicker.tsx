@@ -17,7 +17,7 @@ import { RootState } from "@/store/store";
 type UITimePickerModalProps = {
   disabled: boolean;
   minDate: Date;
-  selectedDate: Date;
+  selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
 };
 
@@ -132,8 +132,9 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
       return newDate;
     };
 
-    const isSelected =
-      resetTime(selectedDate).getTime() === resetTime(date).getTime();
+    const isSelected = selectedDate
+      ? resetTime(selectedDate).getTime() === resetTime(date).getTime()
+      : false;
 
     const isDisabled = resetTime(date) < resetTime(minDate);
 
@@ -184,16 +185,17 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
         (isHour && i >= 21) || // Конец рабочего дня
         (!isHour && i % 10 !== 0) || // Минуты только кратные 10
         (isHour && (i + 1) * 60 * 60 < second + halfHour) || // Не показывать часы, если меньше чем час
-        (!isHour &&
-          new Date(selectedDate).getHours() * 60 * 60 + i * 60 <
-            second + halfHour); // Не показывать минуты, если меньше чем полчаса
+        (!isHour && selectedDate
+          ? new Date(selectedDate).getHours() * 60 * 60 + i * 60 <
+            second + halfHour
+          : false); // Не показывать минуты, если меньше чем полчаса
 
       if (!isDisabled)
         options.push(
           <TouchableOpacity
             key={value}
             onPress={() => {
-              const newDate = new Date(selectedDate);
+              const newDate = new Date(selectedDate || new Date());
               if (isHour) {
                 newDate.setHours(i);
               } else {
@@ -203,16 +205,24 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
             }}
             style={[
               styles.option,
-              (isHour && selectedDate.getHours() === i) ||
-              (!isHour && selectedDate.getMinutes() === i)
+              (isHour && selectedDate
+                ? selectedDate.getHours() === i
+                : false) ||
+              (!isHour && selectedDate
+                ? selectedDate.getMinutes() === i
+                : false)
                 ? styles.selectedOption
                 : null,
             ]}>
             <Text
               style={[
                 styles.optionText,
-                (isHour && selectedDate.getHours() === i) ||
-                (!isHour && selectedDate.getMinutes() === i)
+                (isHour && selectedDate
+                  ? selectedDate.getHours() === i
+                  : false) ||
+                (!isHour && selectedDate
+                  ? selectedDate.getMinutes() === i
+                  : false)
                   ? styles.selectedOptionText
                   : null,
                 isDisabled ? styles.disabledText : null,
@@ -277,14 +287,18 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
                 <View style={styles.picker}>
                   <Text style={styles.pickerLabel}>Часы</Text>
                   <FlatList
-                    data={renderTimeOptions(
-                      selectedDate.getDate() === minDate.getDate()
-                        ? minDate.getHours()
-                        : 0,
-                      21,
-                      1,
-                      true
-                    )}
+                    data={
+                      selectedDate
+                        ? renderTimeOptions(
+                            selectedDate.getDate() === minDate.getDate()
+                              ? minDate.getHours()
+                              : 0,
+                            21,
+                            1,
+                            true
+                          )
+                        : []
+                    }
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => item}
                     initialNumToRender={10}
@@ -299,7 +313,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
                 <View style={styles.picker}>
                   <Text style={styles.pickerLabel}>Минуты</Text>
                   <FlatList
-                    key={selectedDate.toTimeString()}
+                    key={selectedDate ? selectedDate.toTimeString() : ""}
                     data={renderTimeOptions(0, 59, 10, false)}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => item}
@@ -333,22 +347,24 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
         </View>
       </Modal>
 
-      <Text style={styles.selectedText}>
-        Выбранное:{" "}
-        {`${selectedDate.toLocaleDateString("ru-RU", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        })} `}
-        {user?.chooseTime &&
-          `в ${selectedDate
-            .getHours()
-            .toString()
-            .padStart(2, "0")}:${selectedDate
-            .getMinutes()
-            .toString()
-            .padStart(2, "0")}`}
-      </Text>
+      {selectedDate && (
+        <Text style={styles.selectedText}>
+          Выбранное:{" "}
+          {`${selectedDate.toLocaleDateString("ru-RU", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })} `}
+          {user?.chooseTime &&
+            `в ${selectedDate
+              .getHours()
+              .toString()
+              .padStart(2, "0")}:${selectedDate
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}`}
+        </Text>
+      )}
     </View>
   );
 };
