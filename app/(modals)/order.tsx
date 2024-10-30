@@ -21,12 +21,12 @@ const Order = () => {
 
   const [addresses, setAddresses] = useState([] as IAddress[]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
-  const [selectedPayment, setSelectedPayment] = useState("cash");
+  const [selectedPayment, setSelectedPayment] = useState("fakt");
   const [prices, setPrices] = useState({ price12: 900, price19: 1300 });
   const [sum, setSum] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
-  const [selectedDate, setSelectedDate] = useState(null as Date | null);
+  const [selectedDate, setSelectedDate] = useState(new Date() as Date | null);
 
   const getCart = async () => {
     await useHttp
@@ -202,6 +202,12 @@ const Order = () => {
 
   useEffect(() => {
     getAddresses();
+    if (
+      selectedDate?.toLocaleDateString() == new Date().toLocaleDateString() &&
+      selectedDate.getHours() > 18
+    ) {
+      setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+    }
   }, []);
 
   useEffect(() => {
@@ -264,15 +270,9 @@ const Order = () => {
             marginTop: 20,
           }}>
           {/* cash coupon card transfer postpay */}
-
           <UIRadio
             title="Способ оплаты"
             items={[
-              { id: "cash", text: "Наличными" },
-              { id: "coupon", text: "Купоном" },
-              { id: "card", text: "Картой" },
-              { id: "transfer", text: "Переводом" },
-              { id: "postpay", text: "Постоплата" },
               { id: "fakt", text: "Нал/Карта/QR" },
               { id: "postpay", text: "Постоплата" },
               { id: "credit", text: "В долг" },
