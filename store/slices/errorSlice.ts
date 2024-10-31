@@ -12,11 +12,17 @@ const errorSlice = createSlice({
       action: {
         payload: {
           error: boolean;
-          errorMessage: string;
+          errorMessage: string | any;
         };
       }
     ) => {
-      return action.payload;
+      if (typeof action.payload.errorMessage == "string") return action.payload;
+      else {
+        return {
+          error: true,
+          errorMessage: action.payload.errorMessage.message,
+        };
+      }
     },
   },
 });

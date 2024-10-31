@@ -3,11 +3,12 @@ import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Linking, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";
 import { useDispatch } from "react-redux";
 import { setError } from "@/store/slices/errorSlice";
+import Colors from "@/constants/Colors";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -33,11 +34,10 @@ export default function Login() {
           });
         })
         .catch((err) => {
-          console.log(err);
           dispatch(
             setError({
               error: true,
-              errorMessage: err.response.data.message,
+              errorMessage: err.response.data,
             })
           );
         })
@@ -48,6 +48,7 @@ export default function Login() {
       await useHttp
         .post("/sendMail", { mail: formData.mail })
         .then((res) => {
+          console.log(res);
           router.push({
             pathname: "/(registration)/confirmSms",
             params: { mail: formData.mail },
@@ -57,7 +58,7 @@ export default function Login() {
           dispatch(
             setError({
               error: true,
-              errorMessage: err.response.data.message,
+              errorMessage: err.response.data,
             })
           );
         })
@@ -65,6 +66,13 @@ export default function Login() {
           setLoading(false);
         });
     }
+  };
+
+  const routeByLinkToAgreement = () => {
+    Linking.openURL("https://tibetskaya.kz/agreement");
+  };
+  const routeByLinkToPolicy = () => {
+    Linking.openURL("https://tibetskaya.kz/privacePolicy");
   };
 
   return (
@@ -86,6 +94,26 @@ export default function Login() {
             placeholder="Почта"
             textContentType="emailAddress"
           />
+          <Text
+            style={{
+              color: Colors.text,
+              fontSize: 12,
+              fontWeight: "500",
+              textAlign: "center",
+            }}>
+            Нажимая на кнопку "Отправить Смс", вы соглашаетесь с{" "}
+            <Text
+              style={{ color: Colors.blue, textDecorationLine: "underline" }}
+              onPress={routeByLinkToAgreement}>
+              пользовательским соглашением
+            </Text>{" "}
+            и{" "}
+            <Text
+              style={{ color: Colors.blue, textDecorationLine: "underline" }}
+              onPress={routeByLinkToPolicy}>
+              политикой конфиденциальности
+            </Text>
+          </Text>
         </View>
       </View>
       <View style={{ gap: 15, width: "100%" }}>

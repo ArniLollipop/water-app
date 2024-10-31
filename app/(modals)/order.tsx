@@ -102,6 +102,19 @@ const Order = () => {
           errorMessage: "Выберите дату доставки",
         })
       );
+    } else if (
+      selectedDate.getHours() < 10 ||
+      selectedDate.getHours() > 19 ||
+      (selectedDate.getDate() == new Date().getDate() &&
+        new Date().getHours() >= 18)
+    ) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage:
+            "Доставка доступна с 10:00 до 19:00 и не позднее 18:00 на текущий день",
+        })
+      );
     } else {
       const address = addresses.find((a) => a._id === selectedAddressId);
 
@@ -204,7 +217,7 @@ const Order = () => {
     getAddresses();
     if (
       selectedDate?.toLocaleDateString() == new Date().toLocaleDateString() &&
-      selectedDate.getHours() > 18
+      selectedDate.getHours() >= 17
     ) {
       setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
     }

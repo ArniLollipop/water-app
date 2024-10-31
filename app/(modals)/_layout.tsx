@@ -15,6 +15,17 @@ export default function Layout() {
         }}
       />
       <Stack.Screen
+        name="news"
+        options={{
+          headerBackVisible: true,
+          headerBackButtonMenuEnabled: true,
+          headerShown: true,
+          headerShadowVisible: false,
+          headerTitle: "Новости",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen
         name="settings"
         options={{
           headerBackButtonMenuEnabled: true,

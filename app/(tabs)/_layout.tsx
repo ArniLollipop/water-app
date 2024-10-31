@@ -24,7 +24,7 @@ export default function TabLayout() {
     if (token) {
       const user = parseJwt(token);
       dispatch(setUser(user));
-    } else if (!segments.includes("(registration)")) {
+    } else if (!segments.some((segment) => segment == "(registration)")) {
       dispatch(setUser(null));
       router.push("/(registration)/login");
     }

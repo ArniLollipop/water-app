@@ -56,7 +56,7 @@ export default function Login() {
         dispatch(
           setError({
             error: true,
-            errorMessage: err.response.data.message,
+            errorMessage: err.response.data,
           })
         );
       })

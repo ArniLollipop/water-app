@@ -1,20 +1,41 @@
 {
   "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "preview2": {
-      "android": {
-        "gradleCommand": ":app:assembleRelease"
-      }
-    },
-    "preview3": {
-      "developmentClient": true
-    },
-    "preview4": {
+    "development": {
+      "ios": { "image": "latest" },
+      "developmentClient": true,
       "distribution": "internal"
-    }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {}
+    // "preview": {
+    //   "android": {
+    //     "buildType": "apk"
+    //   }
+    // },
+    // "preview2": {
+    //   "android": {
+    //     "gradleCommand": ":app:assembleRelease"
+    //   }
+    // },
+    // "preview3": {
+    //   "developmentClient": true
+    // },
+    // "preview4": {
+    //   "distribution": "internal"
+    // },
+    // "production": {
+    //   "android": {
+    //     "buildType": "apk"
+    //   },
+    //   "ios": {
+    //     "provisioningProfilePath": "ios/certs/profile.mobileprovision",
+    //     "distributionCertificate": {
+    //       "path": "ios/certs/dist.p12",
+    //       "password": "DISTRIBUTION_CERTIFICATE_PASSWORD"
+    //     }
+    //   }
+    // }
   }
 }

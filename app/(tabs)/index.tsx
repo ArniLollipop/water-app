@@ -4,7 +4,7 @@ import HomeRecent from "@/components/home/recent";
 import UIButton from "@/components/UI/Button";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
-import { setCart, setUser } from "@/store/slices/userSlice";
+import { setCart } from "@/store/slices/userSlice";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
@@ -35,7 +35,7 @@ export default function Home() {
         dispatch(
           setError({
             error: true,
-            errorMessage: err.response.data.message,
+            errorMessage: err.response.data,
           })
         );
       });
@@ -48,7 +48,7 @@ export default function Home() {
         setLastOrder(res.data.order);
       })
       .catch(() => {
-        console.log("error");
+        console.log("no last order");
       });
   }
 

@@ -1,6 +1,13 @@
 import Colors from "@/constants/Colors";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 export default function HomeCategories() {
   const router = useRouter();
@@ -15,68 +22,37 @@ export default function HomeCategories() {
         style={categoryStyles.container}>
         <Pressable
           style={categoryStyles.block}
-          onPress={() => router.push("/(modals)/bonus")}>
-          <View style={categoryStyles.innerBlock}>
+          onPress={() => router.push("/news")}>
+          <Image
+            source={require("../../assets/images/mainNews.png")}
+            style={{
+              height: 173,
+              width: 165,
+              objectFit: "cover",
+            }}
+          />
+          <View style={{ position: "absolute", left: 10, bottom: 10 }}>
             <Text
-              style={{
-                fontSize: 32,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-              }}>
-              Скидка
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-                textAlign: "center",
-              }}>
-              20%
+              style={{ fontSize: 18, fontWeight: "500", color: Colors.text }}>
+              Новости
             </Text>
           </View>
         </Pressable>
-        <View style={categoryStyles.block}>
-          <View style={categoryStyles.innerBlock}>
-            <Text
-              style={{
-                fontSize: 32,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-              }}>
-              Здоровье
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-                textAlign: "center",
-              }}>
-              2567
-            </Text>
-          </View>
-        </View>
         <Pressable
-          onPress={() => router.push("/(registration)/login")}
-          style={categoryStyles.block}>
-          <View style={categoryStyles.innerBlock}>
+          style={categoryStyles.block}
+          onPress={() => router.push("/(modals)/bonus")}>
+          <Image
+            source={require("../../assets/images/mainBonus.png")}
+            style={{
+              height: 173,
+              width: 165,
+              objectFit: "cover",
+            }}
+          />
+          <View style={{ position: "absolute", left: 10, bottom: 10 }}>
             <Text
-              style={{
-                fontSize: 32,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-              }}>
-              Скидка
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "500",
-                color: Colors.textSecondary,
-                textAlign: "center",
-              }}>
-              20%
+              style={{ fontSize: 18, fontWeight: "500", color: Colors.text }}>
+              Бонусы
             </Text>
           </View>
         </Pressable>
@@ -90,8 +66,9 @@ const categoryStyles = StyleSheet.create({
     marginVertical: 40,
   },
   block: {
-    backgroundColor: Colors.tint,
+    position: "relative",
     borderRadius: 18,
+    overflow: "hidden",
     height: 173,
     width: 165,
     alignItems: "center",

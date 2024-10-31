@@ -302,7 +302,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.anonymous.myapp";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tibetskaya.tibetskaya";
 				PRODUCT_NAME = "myapp";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -329,7 +329,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.anonymous.myapp";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tibetskaya.tibetskaya";
 				PRODUCT_NAME = "myapp";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

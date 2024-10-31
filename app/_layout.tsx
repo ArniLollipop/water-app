@@ -60,6 +60,10 @@ export default function RootLayout() {
     })();
   }, [pathname]);
 
+  useEffect(() => {
+    console.log("useEffect");
+  }, []);
+
   if (!loaded) {
     return null;
   }
@@ -74,7 +78,6 @@ function RootLayoutNav() {
         flex: 1,
         backgroundColor: "transparent",
       }}>
-      <StatusBar style="dark" hidden={false} backgroundColor="transparent" />
       <SafeAreaView
         shouldRasterizeIOS
         style={{
