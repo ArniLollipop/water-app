@@ -36,6 +36,7 @@
     //       "password": "DISTRIBUTION_CERTIFICATE_PASSWORD"
     //     }
     //   }
-    // }
-  }
+    // },
+  },
+  "submit": { "production": { "ios": { "ascAppId": "tibetskaya", "appleId": "edil.kulzhabay01@gmail.com", "appleTeamId": "KLKM8XT8VL" } } }
 }
