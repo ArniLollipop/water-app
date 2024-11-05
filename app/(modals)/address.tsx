@@ -93,6 +93,7 @@ const Address = () => {
     <View style={sharedStyles.container}>
       <ScrollView
         bounces={false}
+        keyboardShouldPersistTaps="never"
         style={{
           width: "100%",
           paddingBottom: 15,

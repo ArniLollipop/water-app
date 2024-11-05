@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Text, View, Alert } from "react-native";
+import { Switch, Text, View, Alert, ScrollView } from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import MaskedUIInput from "@/components/UI/MaskedInput";
@@ -124,7 +124,9 @@ const Settings = () => {
 
   return (
     <View style={sharedStyles.container}>
-      <View
+      <ScrollView
+        bounces={false}
+        keyboardShouldPersistTaps="never"
         style={{
           gap: 15,
           width: "100%",
@@ -190,7 +192,7 @@ const Settings = () => {
           ]}
           addText="Привязать карту"
         />
-      </View>
+      </ScrollView>
     </View>
   );
 };

@@ -78,11 +78,10 @@ function RootLayoutNav() {
         flex: 1,
         backgroundColor: "transparent",
       }}>
+      <StatusBar style="dark" hidden={false} backgroundColor="transparent" />
       <SafeAreaView
-        shouldRasterizeIOS
         style={{
           flex: 1,
-          backgroundColor: "transparent",
         }}>
         <Provider store={store}>
           <Stack>
@@ -90,6 +89,9 @@ function RootLayoutNav() {
               name="(tabs)"
               options={{
                 headerShown: false,
+                headerStyle: {
+                  backgroundColor: "blue",
+                },
               }}
             />
             <Stack.Screen

@@ -9,8 +9,8 @@ export default function UIIcon(props: { name: string }) {
         <Image
           source={require("../../assets/images/logo.png")}
           style={{
-            height: 40,
-            width: 100,
+            height: 50,
+            width: 130,
             objectFit: "contain",
           }}
         />

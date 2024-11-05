@@ -88,6 +88,7 @@ const Bonus = () => {
   const [currentAmount, setCurrentAmount] = useState(0);
   const [timer, setTimer] = useState<number | null>(null);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // добавлено состояние загрузки данных
 
   // Запрос разрешений на уведомления
   useEffect(() => {
@@ -148,6 +149,8 @@ const Bonus = () => {
             useNativeDriver: false,
           }).start();
         }
+
+        setIsDataLoaded(true); // помечаем данные как загруженные
       } catch (error) {
         console.error("Ошибка при загрузке данных из SecureStore:", error);
       }
@@ -231,6 +234,9 @@ const Bonus = () => {
         userDailyWaterInMl || 2000
       );
 
+      await SecureStore.setItemAsync(PRESS_COUNT_KEY, newPressCount.toString());
+      await SecureStore.setItemAsync(CURRENT_AMOUNT_KEY, newAmount.toString());
+
       setPressCount(newPressCount);
       setCurrentAmount(newAmount);
       setTimer(NOTIFICATION_INTERVAL_MS);
@@ -256,81 +262,81 @@ const Bonus = () => {
     return `${hours}:${minutes}:${seconds}`;
   };
 
-  return (
+  return !isDataLoaded ? (
+    <View style={styles.container}>
+      <UIIcon name="loading" />
+    </View>
+  ) : (
     <View style={sharedStyles.container}>
-      <View style={sharedStyles.container}>
-        {/* Display water levels */}
-        <View style={styles.waterContainer}>
-          <View style={styles.leftItems}>
-            {waterLevels.map((waterLevel, index) => (
-              <View
-                key={index}
+      {/* Display water levels */}
+      <View style={styles.waterContainer}>
+        <View style={styles.leftItems}>
+          {waterLevels.map((waterLevel, index) => (
+            <View
+              key={index}
+              style={[
+                styles.leftItem,
+                index === 0 && styles.firstItem,
+                index === waterLevels.length - 1 && styles.lastItem,
+                { height: 220 / totalPresses },
+              ]}>
+              <Animated.View
                 style={[
-                  styles.leftItem,
-                  index === 0 && styles.firstItem,
-                  index === waterLevels.length - 1 && styles.lastItem,
-                  { height: 220 / totalPresses },
-                ]}>
-                <Animated.View
-                  style={[
-                    styles.waterFill,
-                    {
-                      height: waterLevel.interpolate({
-                        inputRange: [0, 100],
-                        outputRange: ["0%", "100%"],
-                      }),
-                    },
-                  ]}
-                />
-              </View>
-            ))}
-          </View>
-          <Pressable onPress={handlePress} style={styles.imageContainer}>
-            <Image
-              source={require("../../assets/images/bonusImg.png")}
-              style={{
-                height: 200,
-                width: 200,
-                objectFit: "contain",
-              }}
-            />
-          </Pressable>
+                  styles.waterFill,
+                  {
+                    height: waterLevel.interpolate({
+                      inputRange: [0, 100],
+                      outputRange: ["0%", "100%"],
+                    }),
+                  },
+                ]}
+              />
+            </View>
+          ))}
         </View>
+        <Pressable onPress={handlePress} style={styles.imageContainer}>
+          <Image
+            source={require("../../assets/images/bonusImg.png")}
+            style={{
+              height: 200,
+              width: 200,
+              objectFit: "contain",
+            }}
+          />
+        </Pressable>
+      </View>
 
-        <View style={styles.infoBlocksContainer}>
-          <View style={styles.infoBlock}>
-            <UIIcon name="waterButton" />
-            <Text style={styles.infoBlockText}>{pressCount}</Text>
-          </View>
-          <View style={styles.infoBlock}>
-            <UIIcon name="alarmClock" />
-            <Text style={styles.infoBlockText}>
-              {isTimerRunning ? formatTime(timer!) : "1:00:00"}
-            </Text>
-          </View>
-          <View style={styles.infoBlock}>
-            <UIIcon name="water" />
-            <Text style={styles.infoBlockText}>
-              {(currentAmount + 250) / 1000} л
-            </Text>
-          </View>
+      <View style={styles.infoBlocksContainer}>
+        <View style={styles.infoBlock}>
+          <UIIcon name="waterButton" />
+          <Text style={styles.infoBlockText}>{pressCount}</Text>
         </View>
+        <View style={styles.infoBlock}>
+          <UIIcon name="alarmClock" />
+          <Text style={styles.infoBlockText}>
+            {isTimerRunning ? formatTime(timer!) : "1:00:00"}
+          </Text>
+        </View>
+        <View style={styles.infoBlock}>
+          <UIIcon name="water" />
+          <Text style={styles.infoBlockText}>{currentAmount / 1000} л</Text>
+        </View>
+      </View>
 
-        <View style={styles.rules}>
-          <View>
-            <Text style={styles.rulesText}>
-              1. За каждый выпитый стакан воды — 5 бонусов.
-            </Text>
-            <Text style={styles.rulesText}>
-              2. За выполнение ежедневной цели — +20 бонусов.
-            </Text>
-            <Text style={styles.rulesText}>
-              3. За каждые 500 бонусов — скидка 10% на аксессуары (до 50%).
-            </Text>
-            <Text style={styles.rulesText}>
-              4. За каждый заказ воды — +50 бонусов.
-            </Text>
-          </View>
+      <View style={styles.rules}>
+        <View>
+          <Text style={styles.rulesText}>
+            1. За каждый выпитый стакан воды — 5 бонусов.
+          </Text>
+          <Text style={styles.rulesText}>
+            2. За выполнение ежедневной цели — +20 бонусов.
+          </Text>
+          <Text style={styles.rulesText}>
+            3. За каждые 500 бонусов — скидка 10% на аксессуары (до 50%).
+          </Text>
+          <Text style={styles.rulesText}>
+            4. За каждый заказ воды — +50 бонусов.
+          </Text>
         </View>
       </View>
     </View>

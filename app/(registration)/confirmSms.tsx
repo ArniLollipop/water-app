@@ -4,7 +4,7 @@ import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";
 import { useDispatch } from "react-redux";
@@ -55,7 +55,10 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      bounces={false}
+      keyboardShouldPersistTaps="never"
+      contentContainerStyle={styles.container}>
       <View style={styles.loginTop}>
         <UIIcon name="logo" />
         <Text style={styles.loginText}>
@@ -95,6 +98,6 @@ export default function Login() {
           onPress={handleConfirmSms}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }

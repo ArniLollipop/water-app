@@ -30,9 +30,10 @@ export default function Profile() {
 
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState(user?.fullName || "User");
+  const [userName, setUserName] = useState(user?.userName || "");
   const [subscription, setSubscription] = useState("");
   const [editable, setEditable] = useState(
-    "" as "fullName" | "phone" | "subscription" | ""
+    "" as "fullName" | "userName" | "phone" | "subscription" | ""
   );
   const [firstAddress, setFirstAddress] = useState({} as IAddress);
 
@@ -66,7 +67,7 @@ export default function Profile() {
   };
 
   const handleSave = async (data: {
-    field: "fullName" | "phone" | "subscription";
+    field: "fullName" | "phone" | "subscription" | "userName";
     value: string;
   }) => {
     setEditable("");
@@ -119,6 +120,8 @@ export default function Profile() {
       }}
       enabled>
       <ScrollView
+        bounces={false}
+        keyboardShouldPersistTaps="never"
         style={{ flex: 1, width: "100%" }}
         contentContainerStyle={{ flexGrow: 1 }}>
         <View style={sharedStyles.container}>
@@ -145,6 +148,25 @@ export default function Profile() {
                 }
                 rightElement={
                   editable == "fullName" ? (
+                    <UIIcon name="check" />
+                  ) : (
+                    <UIIcon name="edit" />
+                  )
+                }
+              />
+              <UIInput
+                editable={editable == "userName"}
+                value={userName}
+                onChangeText={(text) => setUserName(text)}
+                type="filled"
+                placeholder="Логин"
+                rightElementClick={() =>
+                  editable == "userName"
+                    ? handleSave({ field: "userName", value: userName })
+                    : setEditable("userName")
+                }
+                rightElement={
+                  editable == "userName" ? (
                     <UIIcon name="check" />
                   ) : (
                     <UIIcon name="edit" />

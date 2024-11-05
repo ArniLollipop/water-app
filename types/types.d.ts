@@ -9,6 +9,7 @@ interface IUser {
   _id: string;
   dailyWater: number;
   fullName?: string;
+  userName?: string;
   phone?: string;
   mail?: string;
   subscription?: string;

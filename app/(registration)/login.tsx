@@ -5,7 +5,7 @@ import Colors from "@/constants/Colors";
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";
 import * as SecureStore from "expo-secure-store";
@@ -53,7 +53,10 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      bounces={false}
+      keyboardShouldPersistTaps="never"
+      contentContainerStyle={styles.container}>
       <View style={styles.loginTop}>
         <UIIcon name="logo" />
         <Text style={styles.loginText}>
@@ -117,6 +120,6 @@ export default function Login() {
           onPress={() => router.push("/(registration)/registration")}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
