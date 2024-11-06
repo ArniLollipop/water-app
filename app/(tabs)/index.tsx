@@ -98,7 +98,7 @@ export default function Home() {
           paddingBottom: 15,
         }}>
         {lastOrder && <HomeRecent lastOrder={lastOrder} />}
-        <HomeCategories />
+        <HomeCategories hasLastOrder={lastOrder ? true : false} />
         <Products />
       </ScrollView>
       {isButtonVisible() && (

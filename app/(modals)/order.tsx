@@ -102,6 +102,13 @@ const Order = () => {
           errorMessage: "Выберите дату доставки",
         })
       );
+    } else if (user?.cart && user.cart.b12 + user.cart.b19 < 2) {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "Минимальное количество заказа - 2 бутылки",
+        })
+      );
     } else if (
       selectedDate.getHours() < 10 ||
       selectedDate.getHours() > 19 ||

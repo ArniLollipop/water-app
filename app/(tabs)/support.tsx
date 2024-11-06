@@ -5,8 +5,15 @@ import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSelector } from "react-redux";
+import { Linking, Platform } from "react-native";
 
 export default function Support() {
   const { user } = useSelector((state: RootState) => state.user);
@@ -28,18 +35,37 @@ export default function Support() {
     if (user?._id) getLastOrder();
   }, [user?.mail]);
 
+  const onCallMobilePhone = async (phoneNumber: string) => {
+    if (Platform.OS === "android") {
+      Linking.openURL(`tel:${phoneNumber}`);
+      return;
+    }
+
+    if (Platform.OS === "ios") {
+      Linking.openURL(`telprompt:${phoneNumber}`);
+      return;
+    }
+  };
+
+  const onMailOpen = async (mail: string) => {
+    Linking.openURL(`mailto:${mail}`);
+  };
+
   return (
     <View style={sharedStyles.container}>
       {lastOrder && <HomeRecent lastOrder={lastOrder} />}
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
         <View style={supportStyles.listContent}>
-          <Link href="tel:+7 707 707 77 77">
-            <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
-          </Link>
-          <Link href="tel:+7 707 707 77 77">
-            <Text style={supportStyles.phone}>+7 707 707 77 77</Text>
-          </Link>
+          <TouchableOpacity onPress={() => onCallMobilePhone("+77272378047")}>
+            <Text style={supportStyles.phone}>+7 727 237 80 47</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onCallMobilePhone("+77475315558")}>
+            <Text style={supportStyles.phone}>+7 747 531 55 58</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onMailOpen("info@tibetskaya.kz")}>
+            <Text style={supportStyles.phone}>info@tibetskaya.kz</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

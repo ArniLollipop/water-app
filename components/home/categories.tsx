@@ -1,4 +1,5 @@
 import Colors from "@/constants/Colors";
+import { setError } from "@/store/slices/errorSlice";
 import { useRouter } from "expo-router";
 import {
   Image,
@@ -8,9 +9,24 @@ import {
   Text,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
-export default function HomeCategories() {
+export default function HomeCategories(props: { hasLastOrder: boolean }) {
+  const dispatch = useDispatch();
   const router = useRouter();
+
+  const handlePushToBonus = () => {
+    if (props.hasLastOrder) {
+      router.push("/bonus");
+    } else {
+      dispatch(
+        setError({
+          error: true,
+          errorMessage: "В бонусы можно перейти после первого заказа",
+        })
+      );
+    }
+  };
 
   return (
     <View style={{ flexBasis: 0 }}>
@@ -38,9 +54,7 @@ export default function HomeCategories() {
             </Text>
           </View>
         </Pressable>
-        <Pressable
-          style={categoryStyles.block}
-          onPress={() => router.push("/(modals)/bonus")}>
+        <Pressable style={categoryStyles.block} onPress={handlePushToBonus}>
           <Image
             source={require("../../assets/images/mainBonus.png")}
             style={{
