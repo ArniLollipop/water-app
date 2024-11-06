@@ -123,5 +123,5 @@ const tabBarProps = {
     fontSize: 14,
   },
   headerShadowVisible: false,
-  headerStatusBarHeight: 40,
+  headerStatusBarHeight: 0,
 };
