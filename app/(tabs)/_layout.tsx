@@ -66,7 +66,7 @@ export default function TabLayout() {
           ),
           ...tabBarProps,
           headerStyle: {
-            height: "auto",
+            height: 100,
           },
           tabBarIcon: () => <UIIcon name="home" />,
         }}
@@ -78,7 +78,7 @@ export default function TabLayout() {
           ...tabBarProps,
           title: "История",
           headerStyle: {
-            height: "auto",
+            height: 100,
           },
           tabBarIcon: () => <UIIcon name="story" />,
         }}
@@ -97,7 +97,7 @@ export default function TabLayout() {
           ...tabBarProps,
           title: "Профиль",
           headerStyle: {
-            height: "auto",
+            height: 100,
           },
           tabBarIcon: () => <UIIcon name="profile" />,
         }}
@@ -109,7 +109,7 @@ export default function TabLayout() {
           ...tabBarProps,
           title: "Поддержка",
           headerStyle: {
-            height: "auto",
+            height: 100,
           },
           tabBarIcon: () => <UIIcon name="support" />,
         }}
