@@ -24,12 +24,29 @@ export default function Home() {
   const { user } = useSelector((state: RootState) => state.user);
 
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
+  const [bonus, setBonus] = useState(0);
 
   async function getCart() {
     await useHttp
       .post<ICart>("/getCart", { mail: user?.mail })
       .then((res) => {
         dispatch(setCart(res.data));
+      })
+      .catch((err) => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: err.response.data,
+          })
+        );
+      });
+  }
+
+  async function getBonuses() {
+    await useHttp
+      .post<IUser>("/getClientDataForId", { id: user?._id })
+      .then((res) => {
+        setBonus(res.data.bonus);
       })
       .catch((err) => {
         dispatch(
@@ -54,14 +71,18 @@ export default function Home() {
 
   useEffect(() => {
     if (pathname == "/") {
-      if (user?.mail) getCart();
-      if (user?._id) getLastOrder();
+      if (user?.mail) {
+        getCart();
+      }
+      if (user?._id) {
+        getLastOrder();
+        getBonuses();
+      }
     }
   }, [user?.mail, pathname]);
 
   useEffect(() => {
     if (lastOrder?._id) {
-      console.log("qwe");
       socket.on("message", (data) => {
         console.log(data);
       });
@@ -98,7 +119,7 @@ export default function Home() {
           paddingBottom: 15,
         }}>
         {lastOrder && <HomeRecent lastOrder={lastOrder} />}
-        <HomeCategories hasLastOrder={lastOrder ? true : false} />
+        <HomeCategories bonus={bonus} hasLastOrder={lastOrder ? true : false} />
         <Products />
       </ScrollView>
       {isButtonVisible() && (

@@ -10,8 +10,12 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
+import UIIcon from "../UI/Icon";
 
-export default function HomeCategories(props: { hasLastOrder: boolean }) {
+export default function HomeCategories(props: {
+  hasLastOrder: boolean;
+  bonus: number;
+}) {
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -63,11 +67,20 @@ export default function HomeCategories(props: { hasLastOrder: boolean }) {
               objectFit: "cover",
             }}
           />
-          <View style={{ position: "absolute", left: 10, bottom: 10 }}>
+          <View
+            style={{
+              position: "absolute",
+              left: 10,
+              bottom: 10,
+              flexDirection: "row",
+              gap: 5,
+              alignItems: "flex-end",
+            }}>
             <Text
               style={{ fontSize: 18, fontWeight: "500", color: Colors.text }}>
-              Бонусы
+              {props.bonus}
             </Text>
+            <UIIcon name="waterButton" />
           </View>
         </Pressable>
       </ScrollView>

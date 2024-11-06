@@ -18,6 +18,7 @@ interface IUser {
   chooseTime?: boolean;
   price12?: number;
   price19?: number;
+  bonus: number;
   cart?: {
     b12: number;
     b19: number;

@@ -17,6 +17,7 @@ import * as SecureStore from "expo-secure-store";
 import { setError } from "@/store/slices/errorSlice";
 import * as TaskManager from "expo-task-manager";
 import * as BackgroundFetch from "expo-background-fetch";
+import useHttp from "@/utils/axios";
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
@@ -208,6 +209,32 @@ const Bonus = () => {
     await SecureStore.setItemAsync(START_TIME_KEY, startTime);
   };
 
+  const handleAddBonus = async (): Promise<boolean> => {
+    let res = false;
+    await useHttp
+      .post("/addBonus", { mail: user?.mail })
+      .then(() => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: "Бонусы успешно начислены.",
+          })
+        );
+        res = true;
+      })
+      .catch(() => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage: "Ошибка начисления бонусов.",
+          })
+        );
+        res = false;
+      });
+
+    return res;
+  };
+
   const handlePress = async () => {
     if (isTimerRunning) {
       dispatch(
@@ -228,7 +255,10 @@ const Bonus = () => {
     }
 
     if (pressCount < totalPresses && currentAmount < userDailyWaterInMl) {
-      const newPressCount = pressCount + 1;
+      const res = await handleAddBonus();
+      if (!res) return;
+
+      const newPressCount = pressCount + 5;
       const newAmount = Math.min(
         currentAmount + ML_PER_PRESS,
         userDailyWaterInMl || 2000

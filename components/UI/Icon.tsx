@@ -404,7 +404,7 @@ export default function UIIcon(props: { name: string }) {
       );
     case "waterButton":
       return (
-        <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
+        <Svg width="20" height="20" viewBox="0 0 25 25" fill="none">
           <Circle cx="12.5" cy="12.5" r="12.5" fill="#FD6767" />
           <Ellipse
             cx="12.5"
