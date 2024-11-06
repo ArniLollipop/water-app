@@ -21,6 +21,11 @@ import { setUser } from "@/store/slices/userSlice";
 import { setError } from "@/store/slices/errorSlice";
 import MaskedUIInput from "@/components/UI/MaskedInput";
 
+const PRESS_COUNT_KEY = "press_count";
+const CURRENT_AMOUNT_KEY = "current_amount";
+const TIMER_KEY = "timer_key";
+const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+
 export default function Profile() {
   const pathname = usePathname();
   const router = useRouter();
@@ -40,6 +45,11 @@ export default function Profile() {
   const handleLogOut = async () => {
     await SecureStore.setItemAsync("token", "");
     await SecureStore.setItemAsync("refreshToken", "");
+
+    await SecureStore.deleteItemAsync(PRESS_COUNT_KEY);
+    await SecureStore.deleteItemAsync(CURRENT_AMOUNT_KEY);
+    await SecureStore.deleteItemAsync(TIMER_KEY);
+    await SecureStore.deleteItemAsync(BACKGROUND_TASK_NAME);
     router.push("/(registration)/login");
   };
 
