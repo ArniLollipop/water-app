@@ -46,7 +46,7 @@ export default function Home() {
     await useHttp
       .post<IUser>("/getClientDataForId", { id: user?._id })
       .then((res) => {
-        setBonus(res.data.bonus);
+        setBonus(res.data.bonus || 0);
       })
       .catch((err) => {
         dispatch(

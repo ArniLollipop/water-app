@@ -67,7 +67,7 @@ export default function Profile() {
   };
 
   const handleSave = async (data: {
-    field: "fullName" | "phone" | "subscription" | "userName";
+    field: "fullName" | "phone" | "userName";
     value: string;
   }) => {
     setEditable("");
@@ -84,6 +84,7 @@ export default function Profile() {
             [data.field as keyof IUser]: data.value || "",
             _id: user?._id as string,
             dailyWater: user?.dailyWater || 2,
+            subscription: "",
           })
         );
       })
