@@ -209,10 +209,10 @@ const Bonus = () => {
     await SecureStore.setItemAsync(START_TIME_KEY, startTime);
   };
 
-  const handleAddBonus = async (): Promise<boolean> => {
+  const handleAddBonus = async (count: number): Promise<boolean> => {
     let res = false;
     await useHttp
-      .post("/addBonus", { mail: user?.mail })
+      .post("/addBonus", { mail: user?.mail, count: count })
       .then(() => {
         dispatch(
           setError({
@@ -255,10 +255,10 @@ const Bonus = () => {
     }
 
     if (pressCount < totalPresses && currentAmount < userDailyWaterInMl) {
-      const res = await handleAddBonus();
+      const res = await handleAddBonus(5);
       if (!res) return;
 
-      const newPressCount = pressCount + 5;
+      const newPressCount = pressCount + 1;
       const newAmount = Math.min(
         currentAmount + ML_PER_PRESS,
         userDailyWaterInMl || 2000
@@ -279,6 +279,10 @@ const Bonus = () => {
         duration: 500,
         useNativeDriver: false,
       }).start();
+
+      if (newPressCount === totalPresses) {
+        await handleAddBonus(20);
+      }
 
       setIsTimerRunning(true);
     }
@@ -339,7 +343,7 @@ const Bonus = () => {
       <View style={styles.infoBlocksContainer}>
         <View style={styles.infoBlock}>
           <UIIcon name="waterButton" />
-          <Text style={styles.infoBlockText}>{pressCount}</Text>
+          <Text style={styles.infoBlockText}>{pressCount * 5}</Text>
         </View>
         <View style={styles.infoBlock}>
           <UIIcon name="alarmClock" />

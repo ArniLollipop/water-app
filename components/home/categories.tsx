@@ -53,7 +53,7 @@ export default function HomeCategories(props: {
           />
           <View style={{ position: "absolute", left: 10, bottom: 10 }}>
             <Text
-              style={{ fontSize: 18, fontWeight: "500", color: Colors.text }}>
+              style={{ fontSize: 16, fontWeight: "500", color: Colors.text }}>
               Новости
             </Text>
           </View>
@@ -77,8 +77,8 @@ export default function HomeCategories(props: {
               alignItems: "flex-end",
             }}>
             <Text
-              style={{ fontSize: 18, fontWeight: "500", color: Colors.text }}>
-              {props.bonus}
+              style={{ fontSize: 16, fontWeight: "500", color: Colors.text }}>
+              Бонусы-{props.bonus}
             </Text>
             <UIIcon name="waterButton" />
           </View>
