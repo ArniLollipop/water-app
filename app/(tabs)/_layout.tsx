@@ -58,8 +58,8 @@ export default function TabLayout() {
             <Image
               source={require("../../assets/images/logo.png")}
               style={{
-                height: 30,
-                width: 110,
+                height: 50,
+                width: 130,
                 objectFit: "contain",
               }}
             />
@@ -111,5 +111,6 @@ const tabBarProps = {
     fontSize: 14,
   },
   headerShadowVisible: false,
-  headerStatusBarHeight: 0,
+  headerStatusBarHeight: 40,
+  headerStyle: {},
 };
