@@ -119,7 +119,12 @@ export default function Home() {
           paddingBottom: 15,
         }}>
         {lastOrder && <HomeRecent lastOrder={lastOrder} />}
-        <HomeCategories bonus={bonus} hasLastOrder={lastOrder ? true : false} />
+        <HomeCategories
+          bonus={bonus}
+          hasLastOrder={
+            lastOrder && lastOrder.status == "delivered" ? true : false
+          }
+        />
         <Products />
       </ScrollView>
       {isButtonVisible() && (
