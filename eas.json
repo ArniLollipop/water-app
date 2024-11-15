@@ -26,5 +26,8 @@
         "appleTeamId": "KLKM8XT8VL"
       }
     }
+  },
+  "cli": {
+    "appVersionSource": "remote"
   }
 }

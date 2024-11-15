@@ -14,6 +14,9 @@ import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
 import * as Notifications from "expo-notifications";
+import * as SecureStore from "expo-secure-store";
+
+const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
 const socket = io(process.env.EXPO_PUBLIC_BASE_URL);
 
@@ -36,7 +39,6 @@ export default function Home() {
   const [lastOrderId, setLastOrderId] = useState<string | null>(null)
   const [bonus, setBonus] = useState(0);
   const [haveCompletedOrder, setHaveCompletedOrder] = useState(false)
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   async function getCart() {
     await useHttp
@@ -96,21 +98,37 @@ export default function Home() {
   }, [user?.mail, pathname]);
 
   async function sendPushNotification(status: string) {
+    const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
     let sendStatus = ""
     if (status === "delivered") {
       sendStatus = "Доставлено"
     } else {
       sendStatus = "В пути"
     }
-    await useHttp
-      .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
-      .then((res) => {
-        console.log(res.data);
-        
-      })
-      .catch(() => {
-        console.log("hz che sluchilos");
-      });
+
+    if (!expoPushToken) {
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
+      await useHttp
+        .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
+        .then((res) => {
+          console.log(res.data);
+          
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
+    } else {
+      await useHttp
+        .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
+        .then((res) => {
+          console.log(res.data);
+          
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
+    }
   }
 
   useEffect(() => {
@@ -146,66 +164,17 @@ export default function Home() {
         console.log("Permission for notifications not granted.");
         return;
       }
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Expo Push Token:", token);
-      setExpoPushToken(token); // сохраняем токен в состоянии
+      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+      if (!expoPushToken) {
+        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+      }
     })();
   }, []);
 
   const isButtonVisible = () => {
     return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
   };
-
-  // useEffect(() => {
-  //   console.log("USEEFFECT 1");
-  
-  //   const subscription = Notifications.addNotificationReceivedListener(async (notification) => {
-  //     console.log("Notification received in foreground:");
-  
-  //     // Проверяем, если уведомление имеет специфические данные, которые мы сами добавили, и не создаем его снова
-  //     if (notification.request.content.data?.triggeredByForegroundHandler) {
-  //       console.log("Notification skipped to prevent loop", notification.request.content.data);
-  //       return;
-  //     }
-  
-  //     // Ручное отображение уведомления через scheduleNotificationAsync
-  //     await Notifications.scheduleNotificationAsync({
-  //       content: {
-  //         title: notification.request.content.title || "Новое уведомление",
-  //         body: notification.request.content.body,
-  //         data: { ...notification.request.content.data, triggeredByForegroundHandler: true },
-  //       },
-  //       trigger: null, // Немедленное отображение
-  //     });
-  //   });
-
-  //   console.log("USEEFFECT 2");
-  
-  //   return () => subscription.remove();
-  // }, []);
-
-  // const sendPushNotification = async (token: string | null, status: string) => {
-  //   if (!token) return;
-  //   const message = {
-  //     to: token,
-  //     sound: "default",
-  //     title: "Обновление статуса заказа",
-  //     body: `Статус вашего заказа: ${status}`,
-  //     data: { status },
-  //   };
-
-  //   await fetch("https://api.expo.dev/v2/push/send", {
-  //     method: "POST",
-  //     headers: {
-  //       Accept: "application/json",
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(message),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => console.log("Expo push response:", data))
-  //     .catch((error) => console.error("Push notification error:", error));
-  // };
 
   return (
     <View style={sharedStyles.container}>

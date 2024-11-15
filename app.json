@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tibetskaya",
     "slug": "tibetskaya",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/512.png",
     "notification": {
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "8",
+      "buildNumber": "1",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
         "UIBackgroundModes": [
@@ -28,7 +28,7 @@
       }
     },
     "androidStatusBar": {
-      "backgroundColor": "#000000",
+      "backgroundColor": "#EF4130",
       "translucent": false,
       "barStyle": "dark-content"
     },
@@ -56,9 +56,6 @@
           "icon": "./assets/images/48.png",
           "color": "#EF4130",
           "defaultChannel": "default",
-          "sounds": [
-            "default"
-          ],
           "enableBackgroundRemoteNotifications": false
         }
       ]

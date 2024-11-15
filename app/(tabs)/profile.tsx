@@ -25,6 +25,7 @@ const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
 const TIMER_KEY = "timer_key";
 const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
 export default function Profile() {
   const pathname = usePathname();
@@ -50,6 +51,7 @@ export default function Profile() {
     await SecureStore.deleteItemAsync(CURRENT_AMOUNT_KEY);
     await SecureStore.deleteItemAsync(TIMER_KEY);
     await SecureStore.deleteItemAsync(BACKGROUND_TASK_NAME);
+    await SecureStore.deleteItemAsync(EXPO_PUSH_TOKEN_KEY);
     router.push("/(registration)/login");
   };
 
