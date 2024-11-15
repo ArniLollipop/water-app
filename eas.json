@@ -8,35 +8,23 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
-    // "preview": {
-    //   "android": {
-    //     "buildType": "apk"
-    //   }
-    // },
-    // "preview2": {
-    //   "android": {
-    //     "gradleCommand": ":app:assembleRelease"
-    //   }
-    // },
-    // "preview3": {
-    //   "developmentClient": true
-    // },
-    // "preview4": {
-    //   "distribution": "internal"
-    // },
-    // "production": {
-    //   "android": {
-    //     "buildType": "apk"
-    //   },
-    //   "ios": {
-    //     "provisioningProfilePath": "ios/certs/profile.mobileprovision",
-    //     "distributionCertificate": {
-    //       "path": "ios/certs/dist.p12",
-    //       "password": "DISTRIBUTION_CERTIFICATE_PASSWORD"
-    //     }
-    //   }
-    // },
+    "production": {
+      "ios": {
+        "image": "latest",
+        "distribution": "store"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    }
   },
-  "submit": { "production": { "ios": { "ascAppId": "tibetskaya", "appleId": "edil.kulzhabay01@gmail.com", "appleTeamId": "KLKM8XT8VL" } } }
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "tibetskaya",
+        "appleId": "edil.kulzhabay01@gmail.com",
+        "appleTeamId": "KLKM8XT8VL"
+      }
+    }
+  }
 }

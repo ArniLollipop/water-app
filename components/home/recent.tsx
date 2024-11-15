@@ -87,7 +87,12 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
             </View>
           )}
         </View>
-        <Pressable onPress={handleRepeatOrder} style={recentStyles.bgRight}>
+        <Pressable onPress={handleRepeatOrder}
+          style={[
+            recentStyles.bgRight,
+            { height: lastOrder.products.b12 === 0 || lastOrder.products.b19 === 0 ? "150%" : "140%" }
+          ]}
+        >
           <UIIcon name="white-chevron" />
         </Pressable>
         <View style={recentStyles.bgIcon}>
@@ -179,7 +184,6 @@ const recentStyles = StyleSheet.create({
     top: 0,
     zIndex: 5,
     backgroundColor: Colors.tint,
-    height: "140%",
     justifyContent: "center",
     alignItems: "center",
     padding: 5,

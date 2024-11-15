@@ -23,6 +23,7 @@ interface IUser {
     b12: number;
     b19: number;
   };
+  haveCompletedOrder?: boolean;
 }
 
 interface IAddress {

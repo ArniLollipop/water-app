@@ -1,10 +1,14 @@
 {
   "expo": {
-    "name": "tibetskaya",
+    "name": "Tibetskaya",
     "slug": "tibetskaya",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/512.png",
+    "notification": {
+      "icon": "./assets/images/48.png",
+      "color": "#EF4130"  
+    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -13,9 +17,14 @@
     },
     "ios": {
       "supportsTablet": true,
+      "newArchEnabled": true,
+      "buildNumber": "8",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch"]
+        "UIBackgroundModes": [
+          "fetch"
+        ],
+        "NSUserTrackingUsageDescription": "Для отправки уведомлений о статусе заказа."
       }
     },
     "androidStatusBar": {
@@ -24,9 +33,10 @@
       "barStyle": "dark-content"
     },
     "android": {
+      "newArchEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#EF4130"
       },
       "package": "com.tibetskaya.tibetskaya",
       "permissions": []
@@ -36,15 +46,31 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/48.png",
+          "color": "#EF4130",
+          "defaultChannel": "default",
+          "sounds": [
+            "default"
+          ],
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "eas": {
-        "projectId": "d0db6aaa-349f-40bb-a091-82e41fc7c54e"
+        "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90"
       }
     },
-    "owner": "bocunahero"
+    "owner": "edil_kulzhabay"
   }
 }

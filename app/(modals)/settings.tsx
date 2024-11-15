@@ -146,7 +146,8 @@ const Settings = () => {
                 paddingVertical: 0,
                 paddingHorizontal: 0,
                 maxWidth: 50,
-                width: 30,
+                width: 50,
+                marginTop: -6,
               }}
               ios_backgroundColor="#767577"
               value={isNotificationsEnabled}
@@ -177,6 +178,8 @@ const Settings = () => {
             )
           }
         />
+
+        <View style={{height: 20}}></View>
 
         <UIRadio
           title="Способ оплаты"

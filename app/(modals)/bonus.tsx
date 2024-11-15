@@ -19,6 +19,14 @@ import * as TaskManager from "expo-task-manager";
 import * as BackgroundFetch from "expo-background-fetch";
 import useHttp from "@/utils/axios";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true, // Показывать уведомление в foreground
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
 const NOTIFICATION_INTERVAL_MS = 3600000; // 1 час
@@ -31,6 +39,30 @@ const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
 const TIMER_KEY = "timer_key";
 const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
+
+async function sendPushNotification(status: string) {
+  const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+
+  if (!expoPushToken) {
+    console.error("Expo Push Token not found");
+    return;
+  }
+
+  console.log("sendPushNotification, status:", status);
+  console.log("sendPushNotification, expoPushToken:", expoPushToken);
+
+  await useHttp
+    .post<any>("/pushNotification", { expoToken: expoPushToken, status })
+    .then((res) => {
+      console.log(res.data);
+      
+    })
+    .catch(() => {
+      console.log("hz che sluchilos");
+    });
+  
+}
 
 // Определяем фоновую задачу
 TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
@@ -47,13 +79,7 @@ TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
         currentHour >= NOTIFICATION_START_HOUR &&
         currentHour < NOTIFICATION_END_HOUR
       ) {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Время пить воду!",
-            body: "Не забудьте выпить свой стакан воды.",
-          },
-          trigger: { seconds: 1 },
-        });
+        await sendPushNotification("bonus")
 
         // Очистим таймер после отправки уведомления
         await SecureStore.deleteItemAsync(START_TIME_KEY);
@@ -79,6 +105,19 @@ const Bonus = () => {
   const userDailyWaterInMl =
     (user?.dailyWater && user.dailyWater * 1000) || 2000;
   const totalPresses = Math.floor(userDailyWaterInMl / ML_PER_PRESS);
+  if (!user?.mail) {
+    console.error("User mail is not defined.");
+    return null; // или показать ошибку, если почта пользователя не определена
+  }
+
+  const bonusKey = `${user.mail.replace(/[^a-zA-Z0-9_.-]/g, "")}Bonus`;
+
+  const resetData = () => {
+    setPressCount(0);
+    setCurrentAmount(0);
+    setTimer(null);
+    setIsTimerRunning(false);
+  };
 
   const waterLevels = Array.from(
     { length: totalPresses },
@@ -93,65 +132,66 @@ const Bonus = () => {
 
   // Запрос разрешений на уведомления
   useEffect(() => {
-    const requestPermissions = async () => {
-      try {
-        const { status } = await Notifications.getPermissionsAsync();
-        if (status !== "granted") {
-          const { granted } = await Notifications.requestPermissionsAsync();
-          if (!granted) return;
-        }
-      } catch (error) {
-        console.error("Error requesting notification permissions:", error);
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission for notifications not granted.");
+        return;
       }
-    };
-    requestPermissions();
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("Expo Push Token:", token);
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token); // сохраняем токен в состоянии
+    })();
   }, []);
 
-  // Загрузка данных из SecureStore при монтировании компонента
   useEffect(() => {
     const loadStoredData = async () => {
       try {
-        const storedPressCount = await SecureStore.getItemAsync(
-          PRESS_COUNT_KEY
-        );
-        const storedCurrentAmount = await SecureStore.getItemAsync(
-          CURRENT_AMOUNT_KEY
-        );
-        const storedStartTime = await SecureStore.getItemAsync(START_TIME_KEY);
+        const storedData = await SecureStore.getItemAsync(bonusKey);
 
-        const pressCountValue = storedPressCount
-          ? parseInt(storedPressCount, 10)
-          : 0;
-        const currentAmountValue = storedCurrentAmount
-          ? parseInt(storedCurrentAmount, 10)
-          : 0;
+        // Проверка на начало нового дня
+        const today = new Date().toISOString().split("T")[0];
 
-        setPressCount(pressCountValue);
-        setCurrentAmount(currentAmountValue);
+        if (storedData) {
+          const data = JSON.parse(storedData);
 
-        if (storedStartTime) {
-          const currentTime = Date.now();
-          const elapsed = currentTime - parseInt(storedStartTime, 10);
-
-          if (elapsed < NOTIFICATION_INTERVAL_MS) {
-            setTimer(NOTIFICATION_INTERVAL_MS - elapsed);
-            setIsTimerRunning(true);
+          if (data.lastAccessed !== today) {
+            resetData(); // Обнуляем данные, если день новый
+            await SecureStore.setItemAsync(
+              bonusKey,
+              JSON.stringify({ lastAccessed: today, pressCount: 0, currentAmount: 0, startTime: null })
+            );
           } else {
-            setTimer(null);
-            setIsTimerRunning(false);
+            // Устанавливаем данные из SecureStore
+            setPressCount(data.pressCount || 0);
+            setCurrentAmount(data.currentAmount || 0);
+
+            if (data.startTime) {
+              const currentTime = Date.now();
+              const elapsed = currentTime - parseInt(data.startTime, 10);
+
+              if (elapsed < NOTIFICATION_INTERVAL_MS) {
+                setTimer(NOTIFICATION_INTERVAL_MS - elapsed);
+                setIsTimerRunning(true);
+              }
+            }
+            for (let i = 0; i < data.pressCount; i++) {
+              Animated.timing(waterLevels[i], {
+                toValue: 100,
+                duration: 500,
+                useNativeDriver: false,
+              }).start();
+            }
           }
+        } else {
+          // Если данных нет, создаем новую запись с сегодняшним днем
+          await SecureStore.setItemAsync(
+            bonusKey,
+            JSON.stringify({ lastAccessed: today, pressCount: 0, currentAmount: 0, startTime: null })
+          );
         }
 
-        // Анимация уже заполненных уровней воды
-        for (let i = 0; i < pressCountValue; i++) {
-          Animated.timing(waterLevels[i], {
-            toValue: 100,
-            duration: 500,
-            useNativeDriver: false,
-          }).start();
-        }
-
-        setIsDataLoaded(true); // помечаем данные как загруженные
+        setIsDataLoaded(true); // Данные загружены
       } catch (error) {
         console.error("Ошибка при загрузке данных из SecureStore:", error);
       }
@@ -182,31 +222,31 @@ const Bonus = () => {
     };
   }, [isTimerRunning, timer]);
 
+  // Сохранение данных в SecureStore
+  const saveData = async (updatedData: any) => {
+    const today = new Date().toISOString().split("T")[0];
+    const data = {
+      lastAccessed: today,
+      pressCount,
+      currentAmount,
+      startTime: timer ? Date.now().toString() : null,
+      ...updatedData
+    };
+    await SecureStore.setItemAsync(bonusKey, JSON.stringify(data));
+  };
+
   // Обработка завершения таймера
   const handleTimerEnd = async () => {
     setTimer(null);
     setIsTimerRunning(false);
 
-    // Отправляем уведомление
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Время пить воду!",
-          body: "Не забудьте выпить свой стакан воды.",
-        },
-        trigger: { seconds: 1 },
-      });
+      await sendPushNotification("bonus")
     } catch (error) {
       console.error("Error sending notification:", error);
     }
 
-    await SecureStore.deleteItemAsync(START_TIME_KEY);
-  };
-
-  // Функция для сохранения данных о начале таймера
-  const saveTimerStart = async () => {
-    const startTime = Date.now().toString();
-    await SecureStore.setItemAsync(START_TIME_KEY, startTime);
+    await saveData({ startTime: null });
   };
 
   const handleAddBonus = async (count: number): Promise<boolean> => {
@@ -257,35 +297,28 @@ const Bonus = () => {
     if (pressCount < totalPresses && currentAmount < userDailyWaterInMl) {
       const res = await handleAddBonus(5);
       if (!res) return;
-
-      const newPressCount = pressCount + 1;
-      const newAmount = Math.min(
-        currentAmount + ML_PER_PRESS,
-        userDailyWaterInMl || 2000
-      );
-
-      await SecureStore.setItemAsync(PRESS_COUNT_KEY, newPressCount.toString());
-      await SecureStore.setItemAsync(CURRENT_AMOUNT_KEY, newAmount.toString());
-
-      setPressCount(newPressCount);
-      setCurrentAmount(newAmount);
-      setTimer(NOTIFICATION_INTERVAL_MS);
-      await saveTimerStart();
-
-      const levelIndex = newPressCount - 1;
-
-      Animated.timing(waterLevels[levelIndex], {
-        toValue: 100,
-        duration: 500,
-        useNativeDriver: false,
-      }).start();
-
-      if (newPressCount === totalPresses) {
-        await handleAddBonus(20);
-      }
-
-      setIsTimerRunning(true);
     }
+
+    const newPressCount = pressCount + 1;
+    const newAmount = Math.min(currentAmount + ML_PER_PRESS, userDailyWaterInMl || 2000);
+
+    setPressCount(newPressCount);
+    setCurrentAmount(newAmount);
+    setTimer(NOTIFICATION_INTERVAL_MS);
+    await saveData({ pressCount: newPressCount, currentAmount: newAmount, startTime: Date.now().toString() });
+    const levelIndex = newPressCount - 1;
+
+    Animated.timing(waterLevels[levelIndex], {
+      toValue: 100,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+
+    if (newPressCount === totalPresses) {
+      await handleAddBonus(20);
+    }
+
+    setIsTimerRunning(true);
   };
 
   const formatTime = (timer: number) => {

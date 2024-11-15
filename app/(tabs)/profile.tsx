@@ -228,7 +228,7 @@ export default function Profile() {
                 rightElement={<UIIcon name="gray-chevron" />}
               />
             </View>
-            <View style={{ width: "100%", gap: 10 }}>
+            {/* <View style={{ width: "100%", gap: 10 }}>
               <Text
                 style={{ fontWeight: "500", fontSize: 20, color: Colors.text }}>
                 Промокод
@@ -252,7 +252,7 @@ export default function Profile() {
                   )
                 }
               />
-            </View>
+            </View> */}
             <TouchableOpacity
               onPress={handleLogOut}
               style={{ marginTop: 20, marginLeft: "auto" }}>

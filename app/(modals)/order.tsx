@@ -74,6 +74,17 @@ const Order = () => {
 
   const handleOrder = async () => {
     // clientId, address, products, clientNotes, date, opForm
+    
+
+    if (selectedDate) {
+      // Если установлена только дата, добавляем время по умолчанию
+      if (!user?.chooseTime) {
+        selectedDate.setHours(12, 0, 0, 0); // Устанавливаем время на 12:00
+      }
+    }
+
+    console.log("selectedDate: ", selectedDate?.getHours(), selectedDate?.getMinutes());
+    
     if (!selectedAddressId) {
       dispatch(
         setError({
@@ -88,7 +99,7 @@ const Order = () => {
           errorMessage: "Выберите способ оплаты",
         })
       );
-    } else if (user?.cart?.b12 == 0 && user.cart.b19) {
+    } else if (user?.cart?.b12 == 0 && user?.cart?.b19 == 0) {
       dispatch(
         setError({
           error: true,

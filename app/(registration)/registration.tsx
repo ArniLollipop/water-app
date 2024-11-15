@@ -72,7 +72,7 @@ export default function Login() {
     Linking.openURL("https://tibetskaya.kz/agreement");
   };
   const routeByLinkToPolicy = () => {
-    Linking.openURL("https://tibetskaya.kz/privacePolicy");
+    Linking.openURL("https://tibetskaya.kz/privacyPolicy");
   };
 
   return (
