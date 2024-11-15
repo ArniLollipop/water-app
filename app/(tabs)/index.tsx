@@ -39,6 +39,7 @@ export default function Home() {
   const [lastOrderId, setLastOrderId] = useState<string | null>(null)
   const [bonus, setBonus] = useState(0);
   const [haveCompletedOrder, setHaveCompletedOrder] = useState(false)
+  const [status2, setStatus2] = useState<"awaitingOrder" | "onTheWay" | "delivered" | "cancelled">("awaitingOrder")
 
   async function getCart() {
     await useHttp
@@ -113,7 +114,6 @@ export default function Home() {
         .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
         .then((res) => {
           console.log(res.data);
-          
         })
         .catch(() => {
           console.log("hz che sluchilos");
@@ -123,7 +123,6 @@ export default function Home() {
         .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
         .then((res) => {
           console.log(res.data);
-          
         })
         .catch(() => {
           console.log("hz che sluchilos");
@@ -132,30 +131,44 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (lastOrderId && lastOrder?._id) {
-      console.log("useefect lastOrder");
-      
-      socket.on("message", (data) => {
-          console.log(data);
-      });
+    console.log("Subscribing to socket events...");
+  
+    const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
+      console.log("Order status changed:");
+      console.log("data.status: ", data.status);
+      console.log("status: ", status2);
+      if (data.status !== status2) {
+        setStatus2(data.status);
+      }
+    };
+  
+    socket.on("orderStatusChanged", handleOrderStatusChanged);
+  
+    return () => {
+      console.log("Unsubscribing from socket events");
+      socket.off("orderStatusChanged");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status2 !== "awaitingOrder" && status2 !== lastOrder?.status) {
+      sendPushNotification(status2);
+      if (lastOrder && lastOrder._id) {
+        setLastOrder({
+          ...lastOrder,
+          status: status2,
+        });
+      } else {
+        console.error("lastOrder или _id отсутствует, не могу обновить статус");
+      }
+    }
+  }, [status2])
+
+  useEffect(() => {
+    if (user?._id) {
       socket.emit("join", user?._id, user?.mail);
-
-      const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled"; }) => {
-        console.log("Order status changed:", data);
-        if (lastOrder?.status !== data.status) {
-          setLastOrder({ ...lastOrder, status: data.status });
-          sendPushNotification(data.status)
-        }
-      };
-
-      socket.on("orderStatusChanged", handleOrderStatusChanged);
-
-      // Возвращаем функцию очистки, которая отключает слушатель
-      return () => {
-          socket.off("orderStatusChanged", handleOrderStatusChanged);
-      };
   }
-}, [lastOrderId]);
+  }, [user]);
 
   useEffect(() => {
     (async () => {
