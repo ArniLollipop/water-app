@@ -1,21 +1,35 @@
-import store from "@/store/store";
+import store, { RootState } from "@/store/store";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import {
   SplashScreen,
   Stack,
-  useLocalSearchParams,
   usePathname,
   useRouter,
   useSegments,
 } from "expo-router";
-import { useEffect } from "react";
-import { Provider, useDispatch } from "react-redux";
+import { useEffect, useRef } from "react";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import * as SecureStore from "expo-secure-store";
-import useHttp from "@/utils/axios";
 import UIError from "@/components/UI/Error";
 import { SafeAreaView, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import socket from "@/utils/socket";
+import * as Notifications from "expo-notifications";
+import parseJwt from "@/utils/parseJwt";
+import { setUser } from "@/store/slices/userSlice";
+import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
+import { subscribeToSocketEvents } from "@/utils/socketEvents";
+
+const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true, // Показывать уведомление в foreground
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -37,6 +51,8 @@ export default function RootLayout() {
     Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
     ...FontAwesome.font,
   });
+
+  subscribeToSocketEvents();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -68,10 +84,74 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return <Provider store={store}>
+    <RootLayoutNav />
+    </Provider>
+
 }
 
 function RootLayoutNav() {
+  const router = useRouter();
+  const segments = useSegments();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.user);
+  const hasJoinedRef = useRef(false);
+
+  const getMe = async () => {
+    const token = await SecureStore.getItemAsync("token");
+    if (token) {
+      const user = parseJwt(token);
+      dispatch(setUser(user));
+    } else if (!segments.some((segment) => segment == "(registration)")) {
+      dispatch(setUser(null));
+      router.push("/(registration)/login");
+    }
+  };
+
+  useEffect(() => {
+    if (!user) getMe();
+  }, [segments]);
+
+  useEffect(() => {
+    if (user?._id && !hasJoinedRef.current) {
+      console.log("Socket join");
+      socket.emit("join", user._id, user.mail);
+      hasJoinedRef.current = true;
+    }
+  }, [user]);
+
+  // useEffect(() => {
+  //   const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
+  //     console.log("Order status changed:", data.status);
+  //     dispatch(updateOrderStatus(data.status))
+  //     console.log("After dipatch updateOrderStataus");
+      
+  //   };
+
+  //   console.log("Subscribing to socket events in RootLayoutNav...");
+  //   socket.on("orderStatusChanged", handleOrderStatusChanged);
+
+  //   return () => {
+  //     console.log("Unsubscribing from socket events in RootLayoutNav...");
+  //     socket.off("orderStatusChanged", handleOrderStatusChanged);
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission for notifications not granted.");
+        return;
+      }
+      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+      if (!expoPushToken) {
+        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+      }
+    })();
+  }, []);
+
   return (
     <View
       style={{
@@ -83,7 +163,6 @@ function RootLayoutNav() {
         style={{
           flex: 1,
         }}>
-        <Provider store={store}>
           <Stack>
             <Stack.Screen
               name="(tabs)"
@@ -101,7 +180,6 @@ function RootLayoutNav() {
             <Stack.Screen name="(modals)" options={{ headerShown: false }} />
           </Stack>
           <UIError />
-        </Provider>
       </SafeAreaView>
     </View>
   );

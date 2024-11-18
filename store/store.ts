@@ -2,11 +2,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userSlice from "./slices/userSlice";
 import errorSlice from "./slices/errorSlice";
+import lastOrderStatusSlice from "./slices/lastOrderStatusSlice";
 
 const store = configureStore({
   reducer: {
     error: errorSlice,
     user: userSlice,
+    lastOrderStatus: lastOrderStatusSlice
   },
 });
 

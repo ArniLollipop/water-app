@@ -12,21 +12,11 @@ import { usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import io from "socket.io-client";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
+import { clearOrderStatus, updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
-
-const socket = io(process.env.EXPO_PUBLIC_BASE_URL);
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true, // Показывать уведомление в foreground
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
 
 export default function Home() {
   const router = useRouter();
@@ -34,12 +24,10 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
-
+  const { lastOrderStatus } = useSelector((state: RootState) => state.lastOrderStatus);
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
-  const [lastOrderId, setLastOrderId] = useState<string | null>(null)
   const [bonus, setBonus] = useState(0);
   const [haveCompletedOrder, setHaveCompletedOrder] = useState(false)
-  const [status2, setStatus2] = useState<"awaitingOrder" | "onTheWay" | "delivered" | "cancelled">("awaitingOrder")
 
   async function getCart() {
     await useHttp
@@ -79,7 +67,6 @@ export default function Home() {
       .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
       .then((res) => {
         setLastOrder(res.data.order);
-        setLastOrderId(res.data.order._id)
       })
       .catch(() => {
         console.log("no last order");
@@ -131,59 +118,18 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log("Subscribing to socket events...");
-  
-    const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
-      console.log("Order status changed:");
-      console.log("data.status: ", data.status);
-      console.log("status: ", status2);
-      if (data.status !== status2) {
-        setStatus2(data.status);
-      }
-    };
-  
-    socket.on("orderStatusChanged", handleOrderStatusChanged);
-  
-    return () => {
-      console.log("Unsubscribing from socket events");
-      socket.off("orderStatusChanged");
-    };
-  }, []);
-
-  useEffect(() => {
-    if (status2 !== "awaitingOrder" && status2 !== lastOrder?.status) {
-      sendPushNotification(status2);
-      if (lastOrder && lastOrder._id) {
-        setLastOrder({
-          ...lastOrder,
-          status: status2,
-        });
-      } else {
-        console.error("lastOrder или _id отсутствует, не могу обновить статус");
-      }
-    }
-  }, [status2])
-
-  useEffect(() => {
-    if (user?._id) {
-      socket.emit("join", user?._id, user?.mail);
-  }
-  }, [user]);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission for notifications not granted.");
-        return;
-      }
-      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
-      if (!expoPushToken) {
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-      }
-    })();
-  }, []);
+    console.log(lastOrderStatus);
+    
+    // if (lastOrderStatus) {
+    //   if (lastOrderStatus !== lastOrder?.status) {
+    //     sendPushNotification(lastOrderStatus);
+    //   }
+    //   if (lastOrder) {
+    //     setLastOrder({...lastOrder, status: lastOrderStatus})
+    //   }
+    //   dispatch(clearOrderStatus());
+    // }
+  }, [lastOrderStatus]);
 
   const isButtonVisible = () => {
     return user?.cart && (user.cart.b12 > 0 || user.cart.b19 > 0);
