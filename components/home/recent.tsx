@@ -72,14 +72,14 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
               </Text>
             </View>
           </View>
-          {lastOrder.products.b12 > 0 && (
+          {lastOrder?.products?.b12 && lastOrder?.products?.b12 > 0 && (
             <View style={recentStyles.innerBottom}>
               <Text style={recentStyles.innerBottomRight}>
                 12.5 л - {lastOrder.products.b12} шт
               </Text>
             </View>
           )}
-          {lastOrder.products.b19 > 0 && (
+          {lastOrder?.products?.b19 && lastOrder?.products?.b19 > 0 && (
             <View style={recentStyles.innerBottom}>
               <Text style={recentStyles.innerBottomRight}>
                 18.9 л - {lastOrder.products.b19} шт

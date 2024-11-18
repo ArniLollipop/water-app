@@ -20,6 +20,7 @@ import parseJwt from "@/utils/parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 import { subscribeToSocketEvents } from "@/utils/socketEvents";
+import useHttp from "@/utils/axios";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -52,7 +53,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  subscribeToSocketEvents();
+  // subscribeToSocketEvents();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -120,22 +121,58 @@ function RootLayoutNav() {
     }
   }, [user]);
 
-  // useEffect(() => {
-  //   const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
-  //     console.log("Order status changed:", data.status);
-  //     dispatch(updateOrderStatus(data.status))
-  //     console.log("After dipatch updateOrderStataus");
+  async function sendPushNotification(status: string) {
+    const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+    let sendStatus = ""
+    if (status === "delivered") {
+      sendStatus = "Доставлено"
+    } else {
+      sendStatus = "В пути"
+    }
+
+    if (!expoPushToken) {
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
+      await useHttp
+        .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
+        .then((res) => {
+          console.log(res.data);
+          dispatch(updateOrderStatus(status))
+          console.log("sendPushNotification after dipatch");
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
+    } else {
+      await useHttp
+        .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
+        .then((res) => {
+          console.log(res.data);
+          dispatch(updateOrderStatus(status))
+          console.log("sendPushNotification after dipatch");
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
+    }
+  }
+
+  useEffect(() => {
+    const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
+      console.log("Order status changed:", data.status);
+      sendPushNotification(data.status)
+      console.log("After dipatch updateOrderStataus");
       
-  //   };
+    };
 
-  //   console.log("Subscribing to socket events in RootLayoutNav...");
-  //   socket.on("orderStatusChanged", handleOrderStatusChanged);
+    console.log("Subscribing to socket events in RootLayoutNav...");
+    socket.on("orderStatusChanged", handleOrderStatusChanged);
 
-  //   return () => {
-  //     console.log("Unsubscribing from socket events in RootLayoutNav...");
-  //     socket.off("orderStatusChanged", handleOrderStatusChanged);
-  //   };
-  // }, []);
+    return () => {
+      console.log("Unsubscribing from socket events in RootLayoutNav...");
+      socket.off("orderStatusChanged", handleOrderStatusChanged);
+    };
+  }, []);
 
   useEffect(() => {
     (async () => {

@@ -11,6 +11,8 @@ export function subscribeToSocketEvents() {
     socket.on("orderStatusChanged", (data) => {
       console.log("Order status changed:", data.status);
       store.dispatch(updateOrderStatus(data.status));
+      console.log("After dispatch(updateOrderStatus");
+      
     });
 
     isSubscribed = true;

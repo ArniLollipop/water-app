@@ -118,17 +118,11 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log(lastOrderStatus);
-    
-    // if (lastOrderStatus) {
-    //   if (lastOrderStatus !== lastOrder?.status) {
-    //     sendPushNotification(lastOrderStatus);
-    //   }
-    //   if (lastOrder) {
-    //     setLastOrder({...lastOrder, status: lastOrderStatus})
-    //   }
-    //   dispatch(clearOrderStatus());
-    // }
+    if (lastOrderStatus !== lastOrder?.status) {
+      if (lastOrder && lastOrder?._id) {
+        setLastOrder({...lastOrder, status: lastOrderStatus})
+      }
+    }
   }, [lastOrderStatus]);
 
   const isButtonVisible = () => {

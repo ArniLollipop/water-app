@@ -7,7 +7,9 @@ const lastOrderStatusSlice = createSlice({
   },
   reducers: {
     updateOrderStatus: (state, action: { payload: string | null }) => {
-        state.lastOrderStatus = action.payload
+        if (state.lastOrderStatus !== action.payload) {
+          state.lastOrderStatus = action.payload
+        }
     },
     clearOrderStatus: (state) => {
       state.lastOrderStatus = null;
