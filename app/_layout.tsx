@@ -170,7 +170,7 @@ function RootLayoutNav() {
       console.log("Order status changed:", data.status);
       sendPushNotification(data.status)
       console.log("After dipatch updateOrderStataus");
-      await useHttp
+      await useHttp 
         .post<any>("/expoTokenCheck", { where: "handleOrderStatusChanged"})
         .then((res) => {
           console.log("expoToken check");
@@ -206,16 +206,49 @@ function RootLayoutNav() {
           console.log("hz che sluchilos");
         });
       if (!expoPushToken) {
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        await useHttp
-        .post<any>("/expoTokenCheck", { expoToken: token, where: "token"})
-        .then((res) => {
-          console.log("expoToken check");
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-        await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+        try {
+          await useHttp
+            .post<any>("/expoTokenCheck", { where: "before getExpoPushTokenAsync" })
+            .then((res) => {
+              console.log("expoToken check");
+            })
+            .catch((err) => {
+              console.log("Ошибка при отправке expoToken:", err);
+            });
+          const tokenData = await Notifications.getExpoPushTokenAsync();
+          const token = tokenData.data;
+          console.log('Получен токен:', token);
+      
+          await useHttp
+            .post<any>("/expoTokenCheck", { expoToken: token, where: "token" })
+            .then((res) => {
+              console.log("expoToken check");
+            })
+            .catch((err) => {
+              console.log("Ошибка при отправке expoToken:", err);
+            });
+      
+          await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+        } catch (error) {
+          await useHttp
+            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+            .then((res) => {
+              console.log("expoToken check");
+            })
+            .catch((err) => {
+              console.log("Ошибка при отправке expoToken:", err);
+            });
+        }
+        // const token = (await Notifications.getExpoPushTokenAsync()).data;
+        // await useHttp
+        // .post<any>("/expoTokenCheck", { expoToken: token, where: "token"})
+        // .then((res) => {
+        //   console.log("expoToken check");
+        // })
+        // .catch(() => {
+        //   console.log("hz che sluchilos");
+        // });
+        // await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
       }
     })();
   }, []);
