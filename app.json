@@ -18,13 +18,12 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "3",
+      "buildNumber": "4",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch"
-        ],
-        "NSUserTrackingUsageDescription": "Для отправки уведомлений о статусе заказа."
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSUserTrackingUsageDescription": "Для отправки уведомлений о статусе заказа.",
+        "NSPushNotificationUsageDescription": "Мы используем уведомления для информирования вас о статусе вашего заказа."
       }
     },
     "androidStatusBar": {
@@ -56,7 +55,7 @@
           "icon": "./assets/images/48.png",
           "color": "#EF4130",
           "defaultChannel": "default",
-          "enableBackgroundRemoteNotifications": false
+          "enableRemoteNotifications": true
         }
       ]
     ],
