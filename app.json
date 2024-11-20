@@ -7,7 +7,7 @@
     "icon": "./assets/images/512.png",
     "notification": {
       "icon": "./assets/images/48.png",
-      "color": "#EF4130"  
+      "color": "#EF4130"
     },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
@@ -21,7 +21,10 @@
       "buildNumber": "5",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ],
         "NSUserTrackingUsageDescription": "Для отправки уведомлений о статусе заказа.",
         "NSPushNotificationUsageDescription": "Мы используем уведомления для информирования вас о статусе вашего заказа."
       }
@@ -64,9 +67,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90"
+        "projectId": "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"
+      },
+      "router": {
+        "origin": false
       }
     },
-    "owner": "edil_kulzhabay"
+    "owner": "kanat_akhmetov"
   }
 }

@@ -46,7 +46,7 @@ async function sendPushNotification(status: string) {
 
   if (!expoPushToken) {
     const experienceId = '@edil_kulzhabay/tibetskaya';
-    const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"});
+    const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
     const token = tokenData.data;
 
     await useHttp
@@ -149,7 +149,7 @@ const Bonus = () => {
         console.log("Permission for notifications not granted.");
         return;
       }
-      const token = (await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"})).data;
+      const token = (await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"})).data;
       console.log("Expo Push Token:", token);
       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token); // сохраняем токен в состоянии
     })();

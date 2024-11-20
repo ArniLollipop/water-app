@@ -139,7 +139,7 @@ function RootLayoutNav() {
     }
 
     if (!expoPushToken) {
-      const token = (await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"})).data;
+      const token = (await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"})).data;
       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
       await useHttp
         .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
@@ -216,7 +216,7 @@ function RootLayoutNav() {
               console.log("Ошибка при отправке expoToken:", err);
             });
           const experienceId = '@edil_kulzhabay/tibetskaya';
-          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"});
+          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
           const token = tokenData.data;
           console.log('Получен токен:', token);
       
