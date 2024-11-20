@@ -45,15 +45,12 @@ async function sendPushNotification(status: string) {
   const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
 
   if (!expoPushToken) {
-    console.error("Expo Push Token not found");
-    return;
-  }
+    const experienceId = '@edil_kulzhabay/tibetskaya';
+    const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"});
+    const token = tokenData.data;
 
-  console.log("sendPushNotification, status:", status);
-  console.log("sendPushNotification, expoPushToken:", expoPushToken);
-
-  await useHttp
-    .post<any>("/pushNotification", { expoToken: expoPushToken, status })
+    await useHttp
+    .post<any>("/pushNotification", { expoToken: token, status })
     .then((res) => {
       console.log(res.data);
       
@@ -61,6 +58,20 @@ async function sendPushNotification(status: string) {
     .catch(() => {
       console.log("hz che sluchilos");
     });
+
+    await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+  } else {
+
+    await useHttp
+      .post<any>("/pushNotification", { expoToken: expoPushToken, status })
+      .then((res) => {
+        console.log(res.data);
+        
+      })
+      .catch(() => {
+        console.log("hz che sluchilos");
+      });
+  }
   
 }
 
@@ -138,7 +149,7 @@ const Bonus = () => {
         console.log("Permission for notifications not granted.");
         return;
       }
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      const token = (await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"})).data;
       console.log("Expo Push Token:", token);
       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token); // сохраняем токен в состоянии
     })();

@@ -19,8 +19,8 @@ import * as Notifications from "expo-notifications";
 import parseJwt from "@/utils/parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
-import { subscribeToSocketEvents } from "@/utils/socketEvents";
 import useHttp from "@/utils/axios";
+import Constants from 'expo-constants';
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -139,7 +139,7 @@ function RootLayoutNav() {
     }
 
     if (!expoPushToken) {
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      const token = (await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"})).data;
       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
       await useHttp
         .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
@@ -215,7 +215,8 @@ function RootLayoutNav() {
             .catch((err) => {
               console.log("Ошибка при отправке expoToken:", err);
             });
-          const tokenData = await Notifications.getExpoPushTokenAsync();
+          const experienceId = '@edil_kulzhabay/tibetskaya';
+          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "7f565cac-ac07-46fe-819b-90eaf1474e90"});
           const token = tokenData.data;
           console.log('Получен токен:', token);
       
