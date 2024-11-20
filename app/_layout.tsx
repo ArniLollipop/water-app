@@ -122,6 +122,14 @@ function RootLayoutNav() {
   }, [user]);
 
   async function sendPushNotification(status: string) {
+    await useHttp
+      .post<any>("/expoTokenCheck", { where: "sendPushNotification"})
+      .then((res) => {
+        console.log("expoToken check");
+      })
+      .catch(() => {
+        console.log("hz che sluchilos");
+      });
     const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
     let sendStatus = ""
     if (status === "delivered") {
@@ -158,11 +166,18 @@ function RootLayoutNav() {
   }
 
   useEffect(() => {
-    const handleOrderStatusChanged = (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
+    const handleOrderStatusChanged = async (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
       console.log("Order status changed:", data.status);
       sendPushNotification(data.status)
       console.log("After dipatch updateOrderStataus");
-      
+      await useHttp
+        .post<any>("/expoTokenCheck", { where: "handleOrderStatusChanged"})
+        .then((res) => {
+          console.log("expoToken check");
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
     };
 
     console.log("Subscribing to socket events in RootLayoutNav...");
@@ -182,8 +197,24 @@ function RootLayoutNav() {
         return;
       }
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+      await useHttp
+        .post<any>("/expoTokenCheck", { expoToken: expoPushToken, where: "expoPushToken"})
+        .then((res) => {
+          console.log("expoToken check");
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
       if (!expoPushToken) {
         const token = (await Notifications.getExpoPushTokenAsync()).data;
+        await useHttp
+        .post<any>("/expoTokenCheck", { expoToken: token, where: "token"})
+        .then((res) => {
+          console.log("expoToken check");
+        })
+        .catch(() => {
+          console.log("hz che sluchilos");
+        });
         await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
       }
     })();
