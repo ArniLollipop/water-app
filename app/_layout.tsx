@@ -237,9 +237,7 @@ function RootLayoutNav() {
     }
   }
 
-  useEffect(() => {
-      console.log("user.mail: ", user?.mail);
-      
+  useEffect(() => {      
       sendExpoPushToken()
   }, [user?.mail])
 

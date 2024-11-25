@@ -29,7 +29,7 @@ Notifications.setNotificationHandler({
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
-const NOTIFICATION_INTERVAL_MS = 3600000; // 1 час
+const NOTIFICATION_INTERVAL_MS = 60000; // 1 час
 const NOTIFICATION_START_HOUR = 9; // 9:00
 const NOTIFICATION_END_HOUR = 22; // 22:00
 const START_TIME_KEY = "start_time_key";
@@ -78,6 +78,7 @@ async function sendPushNotification() {
 
 // Определяем фоновую задачу
 TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
+  console.log("Фоновая задача выполнена");
   const startTime = await SecureStore.getItemAsync(START_TIME_KEY);
 
   if (startTime) {
@@ -91,7 +92,7 @@ TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
         currentHour >= NOTIFICATION_START_HOUR &&
         currentHour < NOTIFICATION_END_HOUR
       ) {
-        await sendPushNotification()
+        //await sendPushNotification()
 
         // Очистим таймер после отправки уведомления
         await SecureStore.deleteItemAsync(START_TIME_KEY);
@@ -106,7 +107,7 @@ TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
 
 // Регистрация фоновой задачи
 BackgroundFetch.registerTaskAsync(BACKGROUND_TASK_NAME, {
-  minimumInterval: 3600, // Интервал 1 час
+  minimumInterval: 60, // Интервал 1 час
   stopOnTerminate: false, // Приложение будет работать после закрытия
   startOnBoot: true, // Приложение будет работать после перезагрузки устройства
 });
@@ -252,19 +253,28 @@ const Bonus = () => {
     setTimer(null);
     setIsTimerRunning(false);
 
-    try {
-      await sendPushNotification()
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
+    // try {
+    //   await sendPushNotification()
+    // } catch (error) {
+    //   console.error("Error sending notification:", error);
+    // }
 
     await saveData({ startTime: null });
   };
 
   const handleAddBonus = async (count: number): Promise<boolean> => {
     let res = false;
+    let expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+
+    if (!expoPushToken) {
+      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
+      expoPushToken = tokenData.data;
+
+      // Сохраните токен в SecureStore, если он новый
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, expoPushToken);
+    }
     await useHttp
-      .post("/addBonus", { mail: user?.mail, count: count })
+      .post("/addBonus", { mail: user?.mail, count: count, expoPushToken })
       .then(() => {
         dispatch(
           setError({
