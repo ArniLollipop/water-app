@@ -24,6 +24,7 @@ interface IUser {
     b19: number;
   };
   haveCompletedOrder?: boolean;
+  expoPushToken?: string;
 }
 
 interface IAddress {

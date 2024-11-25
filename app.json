@@ -9,6 +9,10 @@
       "icon": "./assets/images/48.png",
       "color": "#EF4130"
     },
+    "backgroundFetch": {
+      "taskName": "BACKGROUND_TASK",
+      "minimumInterval": 3600 
+    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -18,7 +22,7 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "5",
+      "buildNumber": "6",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
         "UIBackgroundModes": [

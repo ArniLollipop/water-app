@@ -20,7 +20,7 @@ import parseJwt from "@/utils/parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 import useHttp from "@/utils/axios";
-import Constants from 'expo-constants';
+import { setError } from "@/store/slices/errorSlice";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -103,7 +103,7 @@ function RootLayoutNav() {
     if (token) {
       const user = parseJwt(token);
       dispatch(setUser(user));
-    } else if (!segments.some((segment) => segment == "(registration)")) {
+    } else if (!segments.some((segment: string) => segment == "(registration)")) {
       dispatch(setUser(null));
       router.push("/(registration)/login");
     }
@@ -121,71 +121,22 @@ function RootLayoutNav() {
     }
   }, [user]);
 
-  async function sendPushNotification(status: string) {
-    await useHttp
-      .post<any>("/expoTokenCheck", { where: "sendPushNotification"})
-      .then((res) => {
-        console.log("expoToken check");
-      })
-      .catch(() => {
-        console.log("hz che sluchilos");
-      });
-    const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
-    let sendStatus = ""
-    if (status === "delivered") {
-      sendStatus = "Доставлено"
-    } else {
-      sendStatus = "В пути"
-    }
-
-    if (!expoPushToken) {
-      const token = (await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"})).data;
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
-      await useHttp
-        .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
-        .then((res) => {
-          console.log(res.data);
-          dispatch(updateOrderStatus(status))
-          console.log("sendPushNotification after dipatch");
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-    } else {
-      await useHttp
-        .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
-        .then((res) => {
-          console.log(res.data);
-          dispatch(updateOrderStatus(status))
-          console.log("sendPushNotification after dipatch");
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-    }
-  }
-
   useEffect(() => {
-    const handleOrderStatusChanged = async (data: { orderId: string; status: "awaitingOrder" | "onTheWay" | "delivered" | "cancelled" }) => {
-      console.log("Order status changed:", data.status);
-      sendPushNotification(data.status)
-      console.log("After dipatch updateOrderStataus");
-      await useHttp 
-        .post<any>("/expoTokenCheck", { where: "handleOrderStatusChanged"})
-        .then((res) => {
-          console.log("expoToken check");
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-    };
-
-    console.log("Subscribing to socket events in RootLayoutNav...");
-    socket.on("orderStatusChanged", handleOrderStatusChanged);
-
+    // Добавляем слушателя
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      if (notification.request.content.data.newStatus === "bonus") {
+        console.log("Сообщение:", notification.request.content.body);
+        console.log("Данные:", notification.request.content.data);
+      } else {
+        console.log("Сообщение:", notification.request.content.body);
+        console.log("Данные:", notification.request.content.data);
+        dispatch(updateOrderStatus(notification.request.content.data.newStatus === "В пути" ? "onTheWay" : "delivered"))
+      }
+    });
+  
+    // Возвращаем функцию очистки для отписки
     return () => {
-      console.log("Unsubscribing from socket events in RootLayoutNav...");
-      socket.off("orderStatusChanged", handleOrderStatusChanged);
+      subscription.remove();
     };
   }, []);
 
@@ -197,59 +148,72 @@ function RootLayoutNav() {
         return;
       }
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
-      await useHttp
-        .post<any>("/expoTokenCheck", { expoToken: expoPushToken, where: "expoPushToken"})
-        .then((res) => {
-          console.log("expoToken check");
+      if (expoPushToken && user) {
+        console.log(expoPushToken);
+        
+        await useHttp
+        .post("/updateClientDataMobile", {
+          mail: user.mail,
+          field: "expoPushToken",
+          value: expoPushToken,
         })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-      if (!expoPushToken) {
-        try {
-          await useHttp
-            .post<any>("/expoTokenCheck", { where: "before getExpoPushTokenAsync" })
-            .then((res) => {
-              console.log("expoToken check");
+        .then(() => {
+          dispatch(
+            setUser({
+              ...user,
+              expoPushToken: expoPushToken,
             })
-            .catch((err) => {
-              console.log("Ошибка при отправке expoToken:", err);
-            });
-          const experienceId = '@edil_kulzhabay/tibetskaya';
+          );
+        })
+        .catch((err: { response: { data: { message: any; }; }; }) => {
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err?.response?.data?.message,
+            })
+          );
+        });
+      }
+      if (!expoPushToken && user) {
+        try {
           const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
           const token = tokenData.data;
-          console.log('Получен токен:', token);
-      
           await useHttp
-            .post<any>("/expoTokenCheck", { expoToken: token, where: "token" })
-            .then((res) => {
-              console.log("expoToken check");
+            .post("/updateClientDataMobile", {
+              mail: user.mail,
+              field: "expoPushToken",
+              value: token,
             })
-            .catch((err) => {
-              console.log("Ошибка при отправке expoToken:", err);
+            .then(() => {
+              console.log("updateClientDataMobile in layout res");
+              
+              dispatch(
+                setUser({
+                  ...user,
+                  expoPushToken: token,
+                })
+              );
+            })
+            .catch((err: { response: { data: { message: any; }; }; }) => {
+              console.log("updateClientDataMobile in layout error");
+              dispatch(
+                setError({
+                  error: true,
+                  errorMessage: err?.response?.data?.message,
+                })
+              );
             });
-      
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp
             .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
-            .then((res) => {
+            .then((res: any) => {
               console.log("expoToken check");
             })
-            .catch((err) => {
+            .catch((err: any) => {
               console.log("Ошибка при отправке expoToken:", err);
             });
         }
-        // const token = (await Notifications.getExpoPushTokenAsync()).data;
-        // await useHttp
-        // .post<any>("/expoTokenCheck", { expoToken: token, where: "token"})
-        // .then((res) => {
-        //   console.log("expoToken check");
-        // })
-        // .catch(() => {
-        //   console.log("hz che sluchilos");
-        // });
-        // await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
       }
     })();
   }, []);

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Text, View, Alert, ScrollView } from "react-native";
+import { Switch, Text, View, Alert, ScrollView, Pressable } from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import MaskedUIInput from "@/components/UI/MaskedInput";
-import UIRadio from "@/components/UI/Radio";
 import Colors from "@/constants/Colors";
 import { setError } from "@/store/slices/errorSlice";
 import { setUser } from "@/store/slices/userSlice";
@@ -12,11 +11,19 @@ import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { useDispatch, useSelector } from "react-redux";
 import * as Notifications from "expo-notifications";
-import { usePathname } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+
+const PRESS_COUNT_KEY = "press_count";
+const CURRENT_AMOUNT_KEY = "current_amount";
+const TIMER_KEY = "timer_key";
+const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
+const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
 const Settings = () => {
   const pathname = usePathname();
   const dispatch = useDispatch();
+  const router = useRouter();
   const { user } = useSelector((state: RootState) => state.user);
 
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
@@ -70,28 +77,35 @@ const Settings = () => {
 
   // Обработчик переключения состояния
   const handleNotificationToggle = async () => {
-    // Если включаем уведомления, запросить разрешение
     if (!isNotificationsEnabled) {
+      // Запрашиваем разрешение на уведомления
       const permissionGranted = await askNotificationPermission();
       if (!permissionGranted) {
-        // Если разрешение не дано, вернуть переключатель в исходное положение
-        setIsNotificationsEnabled(false);
+        setIsNotificationsEnabled(false); // Если разрешение не получено, возвращаем переключатель в исходное состояние
         return;
       }
+    } else {
+      // Если уведомления отключаются
+      Alert.alert(
+        "Отключение уведомлений",
+        "Вы можете полностью отключить уведомления в настройках устройства."
+      );
     }
-
-    // Меняем состояние уведомлений
+  
+    // Изменяем внутреннее состояние
     setIsNotificationsEnabled(!isNotificationsEnabled);
   };
 
   const handleSaveSetting = async () => {
     const numberOfWater = parseFloat(standardWaterCount);
+    console.log(numberOfWater);
+    
 
-    if (numberOfWater < 1 || numberOfWater > 3) {
+    if (numberOfWater < 1 || numberOfWater > 4) {
       dispatch(
         setError({
           error: true,
-          errorMessage: "Норма воды должна быть в пределах от 1 до 3 литров",
+          errorMessage: "Норма воды должна быть в пределах от 1 до 4 литров",
         })
       );
       return;
@@ -120,6 +134,55 @@ const Settings = () => {
           );
         });
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (user) {
+      await useHttp
+        .post("/deleteClient", {
+          id: user._id,
+        })
+        .then(async () => {
+          dispatch(
+            setUser(null)
+          );
+          await SecureStore.setItemAsync("token", "");
+          await SecureStore.setItemAsync("refreshToken", "");
+          await SecureStore.deleteItemAsync(PRESS_COUNT_KEY);
+          await SecureStore.deleteItemAsync(CURRENT_AMOUNT_KEY);
+          await SecureStore.deleteItemAsync(TIMER_KEY);
+          await SecureStore.deleteItemAsync(BACKGROUND_TASK_NAME);
+          await SecureStore.deleteItemAsync(EXPO_PUSH_TOKEN_KEY);
+          router.push("/(registration)/login");
+        })
+        .catch((err) => {
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err?.response?.data?.message,
+            })
+          );
+        });
+    }
+    console.log("Аккаунт удалён");
+  };
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Удаление аккаунта",
+      "Вы уверены, что хотите удалить ваш аккаунт? Это действие необратимо.",
+      [
+        {
+          text: "Отмена",
+          style: "cancel", // Закрывает окно
+        },
+        {
+          text: "Удалить",
+          style: "destructive", // Красный цвет текста на iOS
+          onPress: () => handleDeleteAccount(),
+        },
+      ]
+    );
   };
 
   return (
@@ -155,15 +218,18 @@ const Settings = () => {
             />
           }
         />
+        <View style={{height: 30}}></View>
         <MaskedUIInput
           mask="9.99"
           editable={editable == "waterCount"}
           value={standardWaterCount}
-          onChangeText={(count) => setStandardWaterCount(count)}
+          onChangeText={(count) => {
+            setStandardWaterCount(count); 
+          }}
           type="filled"
           textContentType="telephoneNumber"
           keyboardType="numeric"
-          label="Дневная норма воды"
+          label="Дневная норма воды: от 1л. - до 4л."
           placeholder="2"
           rightElementClick={() =>
             editable == "waterCount"
@@ -181,20 +247,35 @@ const Settings = () => {
 
         <View style={{height: 20}}></View>
 
-        <UIRadio
-          title="Способ оплаты"
-          items={[
-            {
-              id: "1",
-              text: "Картой",
-            },
-            {
-              id: "2",
-              text: "Наличными",
-            },
-          ]}
-          addText="Привязать карту"
-        />
+        <Pressable
+          disabled={false}
+          onPress={confirmDeleteAccount}
+          style={{
+            padding: 10,
+            marginLeft: "auto",
+            alignSelf: 'center',
+            borderRadius: 8,
+            shadowColor: "#4C4E64",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.42,
+            shadowRadius: 4,
+            elevation: 4,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: false ? 0.5 : 1,
+            backgroundColor: Colors.tint
+          }}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "500",
+                fontFamily: "Roboto",
+                textAlign: "center",
+                color: Colors.textSecondary,
+              }}>
+              Удалить аккаунт
+            </Text>
+        </Pressable>
       </ScrollView>
     </View>
   );

@@ -2,21 +2,50 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
 #import <UserNotifications/UNUserNotificationCenter.h>
+#import <React/RCTPushNotificationManager.h> // Подключение PushNotificationManager
 
 @implementation AppDelegate
 
+// Метод вызывается, когда приложение завершает загрузку
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   [UNUserNotificationCenter currentNotificationCenter].delegate = (id<UNUserNotificationCenterDelegate>)self;
-  // ... другие настройки
+  
+  // Регистрация для удалённых уведомлений
+  [application registerForRemoteNotifications];
+
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
-// Подтверждение показа уведомления в foreground для iOS
+// Обработка показа уведомления в foreground
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
        willPresentNotification:(UNNotification *)notification
          withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
-  completionHandler(UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionSound);
+  completionHandler(UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBadge);
 }
+
+// Обработка уведомлений, полученных в background или при запуске
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void(^)(void))completionHandler {
+  [RCTPushNotificationManager didReceiveRemoteNotification:response.notification.request.content.userInfo];
+  completionHandler();
+}
+
+// Обработка успешной регистрации устройства для уведомлений
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+
+// Обработка ошибки регистрации устройства для уведомлений
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
+// Обработка получения удалённого уведомления
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+  [RCTPushNotificationManager didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+
 @end
 
 // #import "AppDelegate.h"

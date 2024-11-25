@@ -25,6 +25,8 @@ export default function Login() {
     setLoading(true);
     console.log(formData.mail, "mail");
     if (isRecovery) {
+      console.log("sendMailRecovery");
+      
       await useHttp
         .post("/sendMailRecovery", { mail: formData.mail })
         .then((res) => {
@@ -45,6 +47,7 @@ export default function Login() {
           setLoading(false);
         });
     } else {
+      console.log("sendMail");
       await useHttp
         .post("/sendMail", { mail: formData.mail })
         .then((res) => {

@@ -12,11 +12,6 @@ import { usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import * as Notifications from "expo-notifications";
-import * as SecureStore from "expo-secure-store";
-import { clearOrderStatus, updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
-
-const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
 export default function Home() {
   const router = useRouter();
@@ -84,38 +79,6 @@ export default function Home() {
       }
     }
   }, [user?.mail, pathname]);
-
-  async function sendPushNotification(status: string) {
-    const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
-    let sendStatus = ""
-    if (status === "delivered") {
-      sendStatus = "Доставлено"
-    } else {
-      sendStatus = "В пути"
-    }
-
-    if (!expoPushToken) {
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token)
-      await useHttp
-        .post<any>("/pushNotification", { expoToken: token, status: sendStatus })
-        .then((res) => {
-          console.log(res.data);
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-    } else {
-      await useHttp
-        .post<any>("/pushNotification", { expoToken: expoPushToken, status: sendStatus })
-        .then((res) => {
-          console.log(res.data);
-        })
-        .catch(() => {
-          console.log("hz che sluchilos");
-        });
-    }
-  }
 
   useEffect(() => {
     if (lastOrderStatus !== lastOrder?.status) {

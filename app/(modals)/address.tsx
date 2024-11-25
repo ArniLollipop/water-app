@@ -19,7 +19,7 @@ const Address = () => {
   const [addresses, setAddresses] = useState([] as IAddress[]);
   const [newAddress, setNewAddress] = useState({
     mail: user?.mail,
-    city: "",
+    city: "Алматы",
     street: "",
     house: "",
     link: "",
@@ -44,7 +44,7 @@ const Address = () => {
         setIsAdding(false);
         setNewAddress({
           mail: user?.mail,
-          city: "",
+          city: "Алматы",
           street: "",
           house: "",
           link: "",
@@ -114,13 +114,8 @@ const Address = () => {
             <UIInput
               type="filled"
               placeholder="Город"
-              value={newAddress.city}
-              onChangeText={(text) =>
-                setNewAddress({
-                  ...newAddress,
-                  city: text,
-                })
-              }
+              value={"Алматы"}
+              onChangeText={()=>{}}
             />
             <UIInput
               type="filled"
@@ -151,8 +146,7 @@ const Address = () => {
               value={newAddress.link ? "Ссылка адреса" : ""}
             />
             <Text style={{ fontSize: 13, color: Colors.disabled }}>
-              Сгенерируйте ссылку по карте 2ГИС и проверьте правильно ли написан
-              адрес.
+              Проверьте адрес перейдя по сгенерированной ссылке
             </Text>
 
             <UIButton
