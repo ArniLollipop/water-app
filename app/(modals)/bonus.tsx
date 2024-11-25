@@ -29,7 +29,7 @@ Notifications.setNotificationHandler({
 
 // Константы
 const ML_PER_PRESS = 250; // Объем за одно нажатие
-const NOTIFICATION_INTERVAL_MS = 60000; // 1 час
+const NOTIFICATION_INTERVAL_MS = 3600000; // 1 час
 const NOTIFICATION_START_HOUR = 9; // 9:00
 const NOTIFICATION_END_HOUR = 22; // 22:00
 const START_TIME_KEY = "start_time_key";
@@ -107,7 +107,7 @@ TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
 
 // Регистрация фоновой задачи
 BackgroundFetch.registerTaskAsync(BACKGROUND_TASK_NAME, {
-  minimumInterval: 60, // Интервал 1 час
+  minimumInterval: 3600, // Интервал 1 час
   stopOnTerminate: false, // Приложение будет работать после закрытия
   startOnBoot: true, // Приложение будет работать после перезагрузки устройства
 });
