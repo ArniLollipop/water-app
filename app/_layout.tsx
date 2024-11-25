@@ -167,75 +167,81 @@ function RootLayoutNav() {
     })();
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (user?.mail) {
-        const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
-        if (!expoPushToken) {
-          try {
-            const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
-            const token = tokenData.data;
-            await useHttp
-            .post("/updateClientDataMobile", {
-              mail: user.mail,
-              field: "expoPushToken",
-              value: expoPushToken,
-            })
-            .then(() => {
-              dispatch(
-                setUser({
-                  ...user,
-                  expoPushToken: token,
-                })
-              );
-            })
-            .catch((err: { response: { data: { message: any; }; }; }) => {
-              dispatch(
-                setError({
-                  error: true,
-                  errorMessage: err?.response?.data?.message,
-                })
-              );
-            });
-            await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-          } catch (error) {
-            await useHttp
-              .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
-              .then((res: any) => {
-                console.log("expoToken check");
-              })
-              .catch((err: any) => {
-                console.log("Ошибка при отправке expoToken:", err);
-              });
-          }
-        } else {
+  const sendExpoPushToken = async () => {
+    if (user?.mail) {
+      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+      if (!expoPushToken) {
+        try {
+          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
+          const token = tokenData.data;
           await useHttp
-            .post("/updateClientDataMobile", {
-              mail: user.mail,
-              field: "expoPushToken",
-              value: expoPushToken,
+          .post("/updateClientDataMobile", {
+            mail: user.mail,
+            field: "expoPushToken",
+            value: expoPushToken,
+          })
+          .then(() => {
+            console.log("updateClientDataMobile in !expoPushToken");
+            
+            dispatch(
+              setUser({
+                ...user,
+                expoPushToken: token,
+              })
+            );
+          })
+          .catch((err: { response: { data: { message: any; }; }; }) => {
+            dispatch(
+              setError({
+                error: true,
+                errorMessage: err?.response?.data?.message,
+              })
+            );
+          });
+          await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+        } catch (error) {
+          await useHttp
+            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+            .then((res: any) => {
+              console.log("expoToken check");
             })
-            .then(() => {
-              dispatch(
-                setUser({
-                  ...user,
-                  expoPushToken: expoPushToken,
-                })
-              );
-            })
-            .catch((err: { response: { data: { message: any; }; }; }) => {
-              dispatch(
-                setError({
-                  error: true,
-                  errorMessage: err?.response?.data?.message,
-                })
-              );
+            .catch((err: any) => {
+              console.log("Ошибка при отправке expoToken:", err);
             });
         }
+      } else {
+        await useHttp
+          .post("/updateClientDataMobile", {
+            mail: user.mail,
+            field: "expoPushToken",
+            value: expoPushToken,
+          })
+          .then(() => {
+            console.log("updateClientDataMobile in expoPushToken");
+            dispatch(
+              setUser({
+                ...user,
+                expoPushToken: expoPushToken,
+              })
+            );
+          })
+          .catch((err: { response: { data: { message: any; }; }; }) => {
+            dispatch(
+              setError({
+                error: true,
+                errorMessage: err?.response?.data?.message,
+              })
+            );
+          });
       }
-    })
-    
-  }, [user])
+    }
+  }
+
+  useEffect(() => {
+      console.log("user.mail: ", user?.mail);
+      
+      sendExpoPushToken()
+  }, [user?.mail])
 
   return (
     <View
