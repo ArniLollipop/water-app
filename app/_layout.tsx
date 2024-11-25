@@ -148,61 +148,66 @@ function RootLayoutNav() {
         return;
       }
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
-      if (expoPushToken && user) {
+      if (expoPushToken) {
         console.log(expoPushToken);
         
-        await useHttp
-        .post("/updateClientDataMobile", {
-          mail: user.mail,
-          field: "expoPushToken",
-          value: expoPushToken,
-        })
-        .then(() => {
-          dispatch(
-            setUser({
-              ...user,
-              expoPushToken: expoPushToken,
-            })
-          );
-        })
-        .catch((err: { response: { data: { message: any; }; }; }) => {
-          dispatch(
-            setError({
-              error: true,
-              errorMessage: err?.response?.data?.message,
-            })
-          );
-        });
-      }
-      if (!expoPushToken && user) {
-        try {
-          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
-          const token = tokenData.data;
+        if (user) {
           await useHttp
             .post("/updateClientDataMobile", {
               mail: user.mail,
               field: "expoPushToken",
-              value: token,
+              value: expoPushToken,
             })
             .then(() => {
-              console.log("updateClientDataMobile in layout res");
-              
               dispatch(
                 setUser({
                   ...user,
-                  expoPushToken: token,
+                  expoPushToken: expoPushToken,
                 })
               );
             })
             .catch((err: { response: { data: { message: any; }; }; }) => {
-              console.log("updateClientDataMobile in layout error");
               dispatch(
                 setError({
                   error: true,
                   errorMessage: err?.response?.data?.message,
                 })
               );
-            });
+          });
+        }
+      }
+      if (!expoPushToken) {
+        try {
+          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
+          const token = tokenData.data;
+          console.log("token: ", token);
+          if (user) {
+            await useHttp
+              .post("/updateClientDataMobile", {
+                mail: user.mail,
+                field: "expoPushToken",
+                value: token,
+              })
+              .then(() => {
+                console.log("updateClientDataMobile in layout res");
+                
+                dispatch(
+                  setUser({
+                    ...user,
+                    expoPushToken: token,
+                  })
+                );
+              })
+              .catch((err: { response: { data: { message: any; }; }; }) => {
+                console.log("updateClientDataMobile in layout error");
+                dispatch(
+                  setError({
+                    error: true,
+                    errorMessage: err?.response?.data?.message,
+                  })
+                );
+              });
+          }
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp
