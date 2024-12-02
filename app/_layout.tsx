@@ -8,11 +8,11 @@ import {
   useRouter,
   useSegments,
 } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import UIError from "@/components/UI/Error";
-import { SafeAreaView, View } from "react-native";
+import { Alert, SafeAreaView, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import socket from "@/utils/socket";
 import * as Notifications from "expo-notifications";
@@ -21,6 +21,8 @@ import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 import useHttp from "@/utils/axios";
 import { setError } from "@/store/slices/errorSlice";
+import { Platform } from 'react-native';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -47,7 +49,8 @@ export const unstable_settings = {
 export default function RootLayout() {
   const pathname = usePathname();
   const router = useRouter();
-
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [permissionChecked, setPermissionChecked] = useState(false);
   const [loaded, error] = useFonts({
     Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
     ...FontAwesome.font,
@@ -78,8 +81,44 @@ export default function RootLayout() {
   }, [pathname]);
 
   useEffect(() => {
-    console.log("useEffect");
-  }, []);
+    const checkTrackingPermission = async () => {
+      if (Platform.OS === "ios") {
+        const { status } = await requestTrackingPermissionsAsync();
+        if (status === "notDetermined") {
+          const { status: newStatus } = await requestTrackingPermissionsAsync();
+          if (newStatus === "denied") {
+            Alert.alert(
+              "Внимание",
+              "Мы используем ваши данные для персонализации контента. Разрешение на отслеживание можно включить в настройках.",
+            );
+          }
+          setPermissionGranted(newStatus === "granted");
+        } else {
+          setPermissionGranted(status === "granted");
+        }
+      } else {
+        setPermissionGranted(true);
+      }
+      setPermissionChecked(true);
+    };
+
+    checkTrackingPermission();
+  }, [loaded]);
+
+  if (!loaded || !permissionChecked) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "white",
+        }}
+      >
+        <Text>Проверяем разрешения...</Text>
+      </View>
+    );
+  }
 
   if (!loaded) {
     return null;

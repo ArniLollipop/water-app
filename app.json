@@ -22,7 +22,7 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "12",
+      "buildNumber": "14",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
         "UIBackgroundModes": [
