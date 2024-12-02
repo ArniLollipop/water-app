@@ -181,10 +181,19 @@ function RootLayoutNav() {
 
   useEffect(() => {
     (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
+      const { status: pushStatus } = await Notifications.requestPermissionsAsync();
+      if (pushStatus !== "granted") {
         console.log("Permission for notifications not granted.");
         return;
+      } else {
+        setTimeout(async () => {
+          const { status: attStatus } = await requestTrackingPermissionsAsync();
+          if (attStatus === "granted") {
+            console.log("App Tracking Transparency permission granted.");
+          } else {
+            console.log("App Tracking Transparency permission denied.");
+          }
+        }, 1000);
       }
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
       if (!expoPushToken) {
