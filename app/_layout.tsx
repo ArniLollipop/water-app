@@ -23,6 +23,7 @@ import useHttp from "@/utils/axios";
 import { setError } from "@/store/slices/errorSlice";
 import { Platform } from 'react-native';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import checkAndRequestTrackingPermission from "@/components/home/checkAndRequestTrackingPermission";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -56,9 +57,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // subscribeToSocketEvents();
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -79,46 +77,6 @@ export default function RootLayout() {
       }
     })();
   }, [pathname]);
-
-  useEffect(() => {
-    const checkTrackingPermission = async () => {
-      if (Platform.OS === "ios") {
-        const { status } = await requestTrackingPermissionsAsync();
-        if (status === "notDetermined") {
-          const { status: newStatus } = await requestTrackingPermissionsAsync();
-          if (newStatus === "denied") {
-            Alert.alert(
-              "Внимание",
-              "Мы используем ваши данные для персонализации контента. Разрешение на отслеживание можно включить в настройках.",
-            );
-          }
-          setPermissionGranted(newStatus === "granted");
-        } else {
-          setPermissionGranted(status === "granted");
-        }
-      } else {
-        setPermissionGranted(true);
-      }
-      setPermissionChecked(true);
-    };
-
-    checkTrackingPermission();
-  }, [loaded]);
-
-  if (!loaded || !permissionChecked) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "white",
-        }}
-      >
-        <Text>Проверяем разрешения...</Text>
-      </View>
-    );
-  }
 
   if (!loaded) {
     return null;
@@ -191,6 +149,7 @@ function RootLayoutNav() {
           if (attStatus === "granted") {
             console.log("App Tracking Transparency permission granted.");
           } else {
+            checkAndRequestTrackingPermission
             console.log("App Tracking Transparency permission denied.");
           }
         }, 1000);

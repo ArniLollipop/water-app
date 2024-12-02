@@ -8,7 +8,7 @@
         <string>remote-notification</string>
     </array>
     <key>NSUserTrackingUsageDescription</key>
-    <string>Мы используем ваши данные для предоставления персонализированного контента и улучшения работы приложения.</string>
+    <string>Мы используем ваши данные для персонализации контента, улучшения работы приложения и отправки уведомлений о статусе заказов.</string>
     <key>NSPushNotificationUsageDescription</key>
     <string>Мы используем уведомления для информирования вас о статусе вашего заказа.</string>
     <key>CADisableMinimumFrameDurationOnPhone</key>
