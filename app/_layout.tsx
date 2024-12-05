@@ -139,38 +139,41 @@ function RootLayoutNav() {
 
   useEffect(() => {
     (async () => {
-      const { status: pushStatus } = await Notifications.requestPermissionsAsync();
-      if (pushStatus !== "granted") {
-        console.log("Permission for notifications not granted.");
-        return;
+      // Сначала запрос разрешения на отслеживание
+      const { status: attStatus } = await requestTrackingPermissionsAsync();
+      if (attStatus === "granted") {
+        console.log("App Tracking Transparency permission granted.");
       } else {
-        setTimeout(async () => {
-          const { status: attStatus } = await requestTrackingPermissionsAsync();
-          if (attStatus === "granted") {
-            console.log("App Tracking Transparency permission granted.");
-          } else {
-            checkAndRequestTrackingPermission
-            console.log("App Tracking Transparency permission denied.");
-          }
-        }, 1000);
+        console.log("App Tracking Transparency permission denied.");
       }
-      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
-      if (!expoPushToken) {
-        try {
-          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
-          const token = tokenData.data;
-          await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-        } catch (error) {
-          await useHttp
-            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
-            .then((res: any) => {
-              console.log("expoToken check");
-            })
-            .catch((err: any) => {
-              console.log("Ошибка при отправке expoToken:", err);
-            });
+  
+      // Ждем 1 секунду перед запросом разрешения на уведомления
+      setTimeout(async () => {
+        const { status: pushStatus } = await Notifications.requestPermissionsAsync();
+        if (pushStatus !== "granted") {
+          console.log("Permission for notifications not granted.");
+          return;
         }
-      }
+  
+        // Проверка и сохранение токена уведомлений
+        const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+        if (!expoPushToken) {
+          try {
+            const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
+            const token = tokenData.data;
+            await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+          } catch (error) {
+            await useHttp
+              .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+              .then((res: any) => {
+                console.log("expoToken check");
+              })
+              .catch((err: any) => {
+                console.log("Ошибка при отправке expoToken:", err);
+              });
+          }
+        }
+      }, 1000); // Ждем 1 секунду
     })();
   }, []);
 
