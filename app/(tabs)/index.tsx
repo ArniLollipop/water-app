@@ -109,7 +109,18 @@ export default function Home() {
       </ScrollView>
       {isButtonVisible() && (
         <UIButton
-          onPress={() => router.push("/(modals)/order")}
+          onPress={() => {
+            if (!user) {
+              dispatch(
+                setError({
+                  error: true,
+                  errorMessage: "Для оформления заказа нужно зарегистрориваться.",
+                })
+              );
+              return;
+            }
+            router.push("/(modals)/order")
+          }}
           type="default"
           text="Заказать"
           styles={{

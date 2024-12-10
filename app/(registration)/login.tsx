@@ -29,14 +29,14 @@ export default function Login() {
 
   const handleLogin = async () => {
     console.log("login");
-    const { status: attStatus } = await requestTrackingPermissionsAsync();
-    if (attStatus === "granted") {
-      console.log("App Tracking Transparency permission granted.");
-    } else {
-      await checkAndRequestTrackingPermission()
-      console.log("App Tracking Transparency permission denied.");
-      return
-    }
+    // const { status: attStatus } = await requestTrackingPermissionsAsync();
+    // if (attStatus === "granted") {
+    //   console.log("App Tracking Transparency permission granted.");
+    // } else {
+    //   await checkAndRequestTrackingPermission()
+    //   console.log("App Tracking Transparency permission denied.");
+    //   return
+    // }
     await useHttp
       .post<{ accessToken: string; refreshToken: string }>(
         "/clientLogin",

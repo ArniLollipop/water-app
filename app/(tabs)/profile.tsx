@@ -35,27 +35,35 @@ export default function Profile() {
   const { user } = useSelector((state: RootState) => state.user);
 
   const [phone, setPhone] = useState("");
-  const [fullName, setFullName] = useState(user?.fullName || "User");
+  const [fullName, setFullName] = useState(user?.fullName || "");
   const [userName, setUserName] = useState(user?.userName || "");
-  const [subscription, setSubscription] = useState("");
   const [editable, setEditable] = useState(
     "" as "fullName" | "userName" | "phone" | "subscription" | ""
   );
   const [firstAddress, setFirstAddress] = useState({} as IAddress);
 
   const handleLogOut = async () => {
-    await SecureStore.setItemAsync("token", "");
-    await SecureStore.setItemAsync("refreshToken", "");
+    await SecureStore.deleteItemAsync("token");
+    await SecureStore.deleteItemAsync("refreshToken");
+    setFullName("")
+    setUserName("")
+    setFirstAddress({} as IAddress)
+    setPhone("")
 
     await SecureStore.deleteItemAsync(PRESS_COUNT_KEY);
     await SecureStore.deleteItemAsync(CURRENT_AMOUNT_KEY);
     await SecureStore.deleteItemAsync(TIMER_KEY);
     await SecureStore.deleteItemAsync(BACKGROUND_TASK_NAME);
     await SecureStore.deleteItemAsync(EXPO_PUSH_TOKEN_KEY);
-    router.push("/(registration)/login");
+    dispatch(setUser(null))
+    router.push("/(tabs)");
   };
 
   const getUser = async () => {
+    console.log("get user in profile: ", user);
+    if (!user) {
+      router.push("/(registration)/login")
+    }
     await useHttp
       .post<{ clientData: { _doc: IUser }; success: true }>(
         "/getClientDataMobile",
@@ -66,7 +74,6 @@ export default function Profile() {
       .then((res) => {
         setPhone(res.data.clientData._doc.phone || "");
         setFullName(res.data.clientData._doc.fullName || "");
-        setSubscription(res.data.clientData._doc.subscription || "");
         setFirstAddress(
           res.data.clientData._doc?.addresses
             ? res.data.clientData._doc.addresses[0]

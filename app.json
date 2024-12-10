@@ -29,7 +29,6 @@
           "fetch",
           "remote-notification"
         ],
-        "NSUserTrackingUsageDescription": "Для отправки уведомлений о статусе заказа.",
         "NSPushNotificationUsageDescription": "Мы используем уведомления для информирования вас о статусе вашего заказа."
       }
     },

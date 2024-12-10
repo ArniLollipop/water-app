@@ -26,7 +26,7 @@ export default function TabLayout() {
       dispatch(setUser(user));
     } else if (!segments.some((segment) => segment == "(registration)")) {
       dispatch(setUser(null));
-      router.push("/(registration)/login");
+      // router.push("/(registration)/login");
     }
   };
 

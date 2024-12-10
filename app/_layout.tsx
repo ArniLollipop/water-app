@@ -89,11 +89,11 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const router = useRouter();
+  // const router = useRouter();
   const segments = useSegments();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
-  const hasJoinedRef = useRef(false);
+  // const hasJoinedRef = useRef(false);
 
   const getMe = async () => {
     const token = await SecureStore.getItemAsync("token");
@@ -102,7 +102,7 @@ function RootLayoutNav() {
       dispatch(setUser(user));
     } else if (!segments.some((segment: string) => segment == "(registration)")) {
       dispatch(setUser(null));
-      router.push("/(registration)/login");
+      //router.push("/(registration)/login");
     }
   };
 
@@ -110,13 +110,13 @@ function RootLayoutNav() {
     if (!user) getMe();
   }, [segments]);
 
-  useEffect(() => {
-    if (user?._id && !hasJoinedRef.current) {
-      console.log("Socket join");
-      socket.emit("join", user._id, user.mail);
-      hasJoinedRef.current = true;
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?._id && !hasJoinedRef.current) {
+  //     console.log("Socket join");
+  //     socket.emit("join", user._id, user.mail);
+  //     hasJoinedRef.current = true;
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     // Добавляем слушателя
@@ -139,41 +139,65 @@ function RootLayoutNav() {
 
   useEffect(() => {
     (async () => {
-      // Сначала запрос разрешения на отслеживание
-      const { status: attStatus } = await requestTrackingPermissionsAsync();
-      if (attStatus === "granted") {
-        console.log("App Tracking Transparency permission granted.");
-      } else {
-        console.log("App Tracking Transparency permission denied.");
+      const { status: pushStatus } = await Notifications.requestPermissionsAsync();
+      if (pushStatus !== "granted") {
+        console.log("Permission for notifications not granted.");
+        return;
       }
-  
-      // Ждем 1 секунду перед запросом разрешения на уведомления
-      setTimeout(async () => {
-        const { status: pushStatus } = await Notifications.requestPermissionsAsync();
-        if (pushStatus !== "granted") {
-          console.log("Permission for notifications not granted.");
-          return;
+
+      // Проверка и сохранение токена уведомлений
+      const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+      if (!expoPushToken) {
+        try {
+          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
+          const token = tokenData.data;
+          await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+        } catch (error) {
+          await useHttp
+            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+            .then((res: any) => {
+              console.log("expoToken check");
+            })
+            .catch((err: any) => {
+              console.log("Ошибка при отправке expoToken:", err);
+            });
         }
+      }
+      // Сначала запрос разрешения на отслеживание
+      // const { status: attStatus } = await requestTrackingPermissionsAsync();
+      // if (attStatus === "granted") {
+      //   console.log("App Tracking Transparency permission granted.");
+      // } else {
+      //   console.log("App Tracking Transparency permission denied.");
+      // }
   
-        // Проверка и сохранение токена уведомлений
-        const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
-        if (!expoPushToken) {
-          try {
-            const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
-            const token = tokenData.data;
-            await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-          } catch (error) {
-            await useHttp
-              .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
-              .then((res: any) => {
-                console.log("expoToken check");
-              })
-              .catch((err: any) => {
-                console.log("Ошибка при отправке expoToken:", err);
-              });
-          }
-        }
-      }, 1000); // Ждем 1 секунду
+      // // Ждем 1 секунду перед запросом разрешения на уведомления
+      // setTimeout(async () => {
+      //   const { status: pushStatus } = await Notifications.requestPermissionsAsync();
+      //   if (pushStatus !== "granted") {
+      //     console.log("Permission for notifications not granted.");
+      //     return;
+      //   }
+  
+      //   // Проверка и сохранение токена уведомлений
+      //   const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
+      //   if (!expoPushToken) {
+      //     try {
+      //       const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
+      //       const token = tokenData.data;
+      //       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
+      //     } catch (error) {
+      //       await useHttp
+      //         .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+      //         .then((res: any) => {
+      //           console.log("expoToken check");
+      //         })
+      //         .catch((err: any) => {
+      //           console.log("Ошибка при отправке expoToken:", err);
+      //         });
+      //     }
+      //   }
+      // }, 1000); // Ждем 1 секунду
     })();
   }, []);
 
