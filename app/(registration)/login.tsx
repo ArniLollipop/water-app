@@ -4,17 +4,15 @@ import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import Checkbox from "expo-checkbox";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";
 import * as SecureStore from "expo-secure-store";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import parseJwt from "@/utils/parseJwt";
 import { setError } from "@/store/slices/errorSlice";
 import { setUser } from "@/store/slices/userSlice";
-import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
-import checkAndRequestTrackingPermission from "@/components/home/checkAndRequestTrackingPermission";
 
 export default function Login() {
   const router = useRouter();
@@ -29,14 +27,6 @@ export default function Login() {
 
   const handleLogin = async () => {
     console.log("login");
-    // const { status: attStatus } = await requestTrackingPermissionsAsync();
-    // if (attStatus === "granted") {
-    //   console.log("App Tracking Transparency permission granted.");
-    // } else {
-    //   await checkAndRequestTrackingPermission()
-    //   console.log("App Tracking Transparency permission denied.");
-    //   return
-    // }
     await useHttp
       .post<{ accessToken: string; refreshToken: string }>(
         "/clientLogin",

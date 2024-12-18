@@ -1,7 +1,6 @@
 import UIButton from "@/components/UI/Button";
 import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
-import Colors from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -76,18 +75,6 @@ export default function Login() {
             placeholder="Код из смс"
             textContentType="oneTimeCode"
           />
-
-          {/* <UIInput placeholder="Логин" textContentType="username" />
-          <UIInput
-            placeholder="Пароль"
-            textContentType="password"
-            secureTextEntry
-          />
-          <UIInput
-            placeholder="Повторите пароль"
-            textContentType="password"
-            secureTextEntry
-          /> */}
         </View>
       </View>
       <View style={{ gap: 15, width: "100%" }}>

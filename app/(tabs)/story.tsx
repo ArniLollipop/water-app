@@ -1,4 +1,3 @@
-import UIAccordion from "@/components/UI/Accordion";
 import Colors from "@/constants/Colors";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
@@ -6,7 +5,7 @@ import useHttp from "@/utils/axios";
 import { usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export default function Story() {
   const pathname = usePathname();

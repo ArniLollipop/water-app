@@ -3,7 +3,7 @@ import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import styles from "./style";
 import useHttp from "@/utils/axios";

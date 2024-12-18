@@ -3,10 +3,8 @@ import Colors from "@/constants/Colors";
 import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
-import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,

@@ -35,46 +35,8 @@ const NOTIFICATION_END_HOUR = 22; // 22:00
 const START_TIME_KEY = "start_time_key";
 
 // Ключи для SecureStore
-const PRESS_COUNT_KEY = "press_count";
-const CURRENT_AMOUNT_KEY = "current_amount";
-const TIMER_KEY = "timer_key";
 const BACKGROUND_TASK_NAME = "BACKGROUND_TASK";
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
-
-async function sendPushNotification() {
-  const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
-
-  if (!expoPushToken) {
-    const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
-    const token = tokenData.data;
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Пора пить воду",
-        body: "Не забудьте выпить стакан воды",
-        sound: "default",
-        data: { newStatus: "bonus" },
-      },
-      trigger: null, // Срабатывает сразу
-    });
-    console.log("WE HERERERERERR");
-    
-
-    await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-  } else {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Пора пить воду",
-        body: "Не забудьте выпить стакан воды",
-        sound: "default",
-        data: { newStatus: "bonus" },
-      },
-      trigger: null, // Срабатывает сразу
-    });
-    console.log("WE HERERERERERR2");
-  }
-  
-}
 
 // Определяем фоновую задачу
 TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
@@ -92,8 +54,6 @@ TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
         currentHour >= NOTIFICATION_START_HOUR &&
         currentHour < NOTIFICATION_END_HOUR
       ) {
-        //await sendPushNotification()
-
         // Очистим таймер после отправки уведомления
         await SecureStore.deleteItemAsync(START_TIME_KEY);
       }
@@ -252,12 +212,6 @@ const Bonus = () => {
   const handleTimerEnd = async () => {
     setTimer(null);
     setIsTimerRunning(false);
-
-    // try {
-    //   await sendPushNotification()
-    // } catch (error) {
-    //   console.error("Error sending notification:", error);
-    // }
 
     await saveData({ startTime: null });
   };

@@ -2,8 +2,8 @@ import UIIcon from "@/components/UI/Icon";
 import UIInput from "@/components/UI/Input";
 import Colors from "@/constants/Colors";
 import sharedStyles from "@/styles/style";
-import { useFocusEffect, usePathname, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,

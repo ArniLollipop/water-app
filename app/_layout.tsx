@@ -8,22 +8,18 @@ import {
   useRouter,
   useSegments,
 } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import UIError from "@/components/UI/Error";
-import { Alert, SafeAreaView, Text, View } from "react-native";
+import { SafeAreaView, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import socket from "@/utils/socket";
 import * as Notifications from "expo-notifications";
 import parseJwt from "@/utils/parseJwt";
 import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 import useHttp from "@/utils/axios";
 import { setError } from "@/store/slices/errorSlice";
-import { Platform } from 'react-native';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
-import checkAndRequestTrackingPermission from "@/components/home/checkAndRequestTrackingPermission";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -36,22 +32,17 @@ Notifications.setNotificationHandler({
 });
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 
 export default function RootLayout() {
   const pathname = usePathname();
   const router = useRouter();
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  const [permissionChecked, setPermissionChecked] = useState(false);
   const [loaded, error] = useFonts({
     Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
     ...FontAwesome.font,
@@ -89,11 +80,9 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  // const router = useRouter();
   const segments = useSegments();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
-  // const hasJoinedRef = useRef(false);
 
   const getMe = async () => {
     const token = await SecureStore.getItemAsync("token");
@@ -102,21 +91,12 @@ function RootLayoutNav() {
       dispatch(setUser(user));
     } else if (!segments.some((segment: string) => segment == "(registration)")) {
       dispatch(setUser(null));
-      //router.push("/(registration)/login");
     }
   };
 
   useEffect(() => {
     if (!user) getMe();
   }, [segments]);
-
-  // useEffect(() => {
-  //   if (user?._id && !hasJoinedRef.current) {
-  //     console.log("Socket join");
-  //     socket.emit("join", user._id, user.mail);
-  //     hasJoinedRef.current = true;
-  //   }
-  // }, [user]);
 
   useEffect(() => {
     // Добавляем слушателя
@@ -163,41 +143,6 @@ function RootLayoutNav() {
             });
         }
       }
-      // Сначала запрос разрешения на отслеживание
-      // const { status: attStatus } = await requestTrackingPermissionsAsync();
-      // if (attStatus === "granted") {
-      //   console.log("App Tracking Transparency permission granted.");
-      // } else {
-      //   console.log("App Tracking Transparency permission denied.");
-      // }
-  
-      // // Ждем 1 секунду перед запросом разрешения на уведомления
-      // setTimeout(async () => {
-      //   const { status: pushStatus } = await Notifications.requestPermissionsAsync();
-      //   if (pushStatus !== "granted") {
-      //     console.log("Permission for notifications not granted.");
-      //     return;
-      //   }
-  
-      //   // Проверка и сохранение токена уведомлений
-      //   const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
-      //   if (!expoPushToken) {
-      //     try {
-      //       const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
-      //       const token = tokenData.data;
-      //       await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
-      //     } catch (error) {
-      //       await useHttp
-      //         .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
-      //         .then((res: any) => {
-      //           console.log("expoToken check");
-      //         })
-      //         .catch((err: any) => {
-      //           console.log("Ошибка при отправке expoToken:", err);
-      //         });
-      //     }
-      //   }
-      // }, 1000); // Ждем 1 секунду
     })();
   }, []);
 
