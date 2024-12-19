@@ -50,6 +50,21 @@ export default function Profile() {
     setFirstAddress({} as IAddress)
     setPhone("")
 
+    const expoPushToken = SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+
+    await useHttp
+      .post("/updateClientDataMobile", {
+        mail: user?.mail,
+        field: "expoPushTokenDel",
+        value: expoPushToken
+      })
+      .then(() => {
+        console.log("clear expo push token");
+      })
+      .catch((err) => {
+        console.log("error when clear expo push token");
+      });
+
     await SecureStore.deleteItemAsync(PRESS_COUNT_KEY);
     await SecureStore.deleteItemAsync(CURRENT_AMOUNT_KEY);
     await SecureStore.deleteItemAsync(TIMER_KEY);

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Tibetskaya",
-    "slug": "Tibetskaya",
+    "slug": "tibetskaya",
     "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/512.png",
@@ -40,11 +40,11 @@
     "android": {
       "newArchEnabled": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/512.png",
         "backgroundColor": "#EF4130"
       },
       "package": "com.tibetskaya.tibetskaya",
-      "permissions": []
+      "permissions": ["NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",

@@ -49,7 +49,7 @@ export default function Story() {
             return (
               <View key={order._id} style={storyStyles.item}>
                 <View style={storyStyles.itemLeft}>
-                  <View style={{ gap: 10 }}>
+                  <View style={{ gap: 10, maxWidth: 200 }}>
                     <Text
                       style={{
                         color: Colors.text,
@@ -66,7 +66,7 @@ export default function Story() {
                       style={{
                         color: Colors.text,
                         fontSize: 16,
-                        fontWeight: "500",
+                        fontWeight: "500"
                       }}>
                       {order?.address?.actual}
                     </Text>
@@ -77,7 +77,6 @@ export default function Story() {
                       fontSize: 16,
                       fontWeight: "500",
                     }}>
-                    {/* Адрес */}
                     {order.sum} ₸
                   </Text>
                 </View>
@@ -126,7 +125,6 @@ const storyStyles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     justifyContent: "space-between",
-    height: 120,
   },
   innerBottom: {
     display: "flex",

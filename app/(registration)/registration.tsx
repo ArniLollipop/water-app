@@ -9,8 +9,6 @@ import useHttp from "@/utils/axios";
 import { useDispatch } from "react-redux";
 import { setError } from "@/store/slices/errorSlice";
 import Colors from "@/constants/Colors";
-import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
-import checkAndRequestTrackingPermission from "@/components/home/checkAndRequestTrackingPermission";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -24,14 +22,6 @@ export default function Login() {
   });
 
   const handleSendMail = async () => {
-    const { status: attStatus } = await requestTrackingPermissionsAsync();
-    if (attStatus === "granted") {
-      console.log("App Tracking Transparency permission granted.");
-    } else {
-      await checkAndRequestTrackingPermission()
-      console.log("App Tracking Transparency permission denied.");
-      return
-    }
     setLoading(true);
     console.log(formData.mail, "mail");
     if (isRecovery) {
