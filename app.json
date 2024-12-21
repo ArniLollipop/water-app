@@ -2,7 +2,8 @@
   "expo": {
     "name": "Tibetskaya",
     "slug": "tibetskaya",
-    "version": "1.0.2",
+    "projectId": "44ab56bf-15dd-4f12-9c01-c29f592dc6c9",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/512.png",
     "notification": {
@@ -22,7 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "19",
+      "buildNumber": "2",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
         "UIBackgroundModes": [
@@ -38,6 +39,7 @@
       "barStyle": "dark-content"
     },
     "android": {
+      "googleServicesFile": "./android/app/google-services.json",
       "newArchEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/512.png",

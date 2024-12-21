@@ -119,6 +119,14 @@ function RootLayoutNav() {
 
   useEffect(() => {
     (async () => {
+      await useHttp
+        .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync in useEffect first log" })
+        .then((res: any) => {
+          console.log("expoToken check");
+        })
+        .catch((err: any) => {
+          console.log("Ошибка при отправке expoToken:", err);
+        });
       const { status: pushStatus } = await Notifications.requestPermissionsAsync();
       if (pushStatus !== "granted") {
         console.log("Permission for notifications not granted.");
@@ -134,7 +142,7 @@ function RootLayoutNav() {
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp
-            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error in useEffect", error })
             .then((res: any) => {
               console.log("expoToken check");
             })
@@ -180,7 +188,7 @@ function RootLayoutNav() {
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp
-            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error", error })
+            .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync error in sendExpoPushToken", error })
             .then((res: any) => {
               console.log("expoToken check");
             })

@@ -119,9 +119,9 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
     });
 
     if (isWorkHour()) {
-      return days.filter((date) => resetTime(date) >= minDateReset);
+      return days.filter((date) => resetTime(date) >= minDateReset && date.getDay() !== 0);
     } else {
-      return days.filter((date) => resetTime(date) > minDateReset);
+      return days.filter((date) => resetTime(date) > minDateReset && date.getDay() !== 0);
     }
   };
 
