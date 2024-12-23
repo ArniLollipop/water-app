@@ -17,7 +17,7 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/512.png",
       "resizeMode": "contain"
     },
     "ios": {
@@ -40,13 +40,12 @@
     },
     "android": {
       "googleServicesFile": "./android/app/google-services.json",
-      "newArchEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/512.png",
         "backgroundColor": "#EF4130"
       },
       "package": "com.tibetskaya.tibetskaya",
-      "permissions": ["NOTIFICATIONS"]
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
