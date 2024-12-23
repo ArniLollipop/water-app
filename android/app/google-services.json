@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "937936723927",
+    "project_id": "tibetskaya-1bb8d",
+    "storage_bucket": "tibetskaya-1bb8d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937936723927:android:a95094a421ab4a1b937592",
+        "android_client_info": {
+          "package_name": "com.tibetskaya.tibetskaya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFfvlAF7Hv_ODXqptx2Vvmjn6mnFCCcYQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
