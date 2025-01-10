@@ -3,7 +3,7 @@ import { RootState } from "@/store/store";
 import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { usePathname } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 
@@ -13,36 +13,64 @@ export default function Story() {
 
   const [page, setPage] = useState(1);
   const [orders, setOrders] = useState([] as IOrder[]);
+  const [haveMore, setHaveMore] = useState(false)
+  const [isLoading, setIsLoading] = useState(false); // Флаг для предотвращения дублирования запросов
 
-  async function getHistory() {
+  const getHistory = useCallback(async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+
     await useHttp
       .post<{ orders: IOrder[] }>("/getClientHistoryMobile", {
         clientId: user?._id,
-        page: page,
+        page,
       })
       .then((res) => {
-        setOrders(res.data.orders);
-      });
-  }
+        const newOrders = res.data.orders;
+        if (newOrders.length === 0) {
+          setHaveMore(true)
+        }
+        setOrders((prevOrders) => [...prevOrders, ...newOrders]);
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setIsLoading(false));
+  }, [page, user?._id, isLoading]);
+
+  const handleScroll = useCallback(
+    ({ nativeEvent }) => {
+      const buffer = 300; // Буфер перед концом списка
+      const isNearBottom =
+        nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
+        nativeEvent.contentSize.height - buffer;
+
+      if (isNearBottom && !isLoading && !haveMore) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    },
+    [isLoading]
+  );
+
+  // Сброс состояния при каждом входе на страницу
+  useEffect(() => {
+    if (pathname === "/story") {
+      setPage(1);
+      setOrders([]);
+      setHaveMore(false);
+    }
+  }, [pathname]);
+
 
   useEffect(() => {
-    if (pathname == "/story") {
       getHistory();
-    }
-  }, [user?.mail, pathname]);
+  }, [page, haveMore]);
 
   return (
     <ScrollView
-      onScroll={({ nativeEvent }) => {
-        if (
-          nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >
-          nativeEvent.contentSize.height
-        ) {
-          setPage(page + 1);
-          getHistory();
-        }
-      }}
-      contentContainerStyle={{ minHeight: "100%" }}>
+      onScroll={handleScroll}
+      scrollEventThrottle={100} // Ограничиваем частоту вызова функции (200 мс)
+      contentContainerStyle={{ minHeight: "100%" }}
+    >
       <View style={sharedStyles.container}>
         {orders.length > 0 &&
           orders.map((order) => {

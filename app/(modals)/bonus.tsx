@@ -111,9 +111,9 @@ const Bonus = () => {
         console.log("Permission for notifications not granted.");
         return;
       }
-      const token = (await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"})).data;
-      console.log("Expo Push Token:", token);
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token); // сохраняем токен в состоянии
+      const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+      console.log("Expo Push Token:", devicePushToken);
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, devicePushToken); // сохраняем токен в состоянии
     })();
   }, []);
 
@@ -221,11 +221,11 @@ const Bonus = () => {
     let expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
 
     if (!expoPushToken) {
-      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
-      expoPushToken = tokenData.data;
+      const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+      expoPushToken = devicePushToken;
 
       // Сохраните токен в SecureStore, если он новый
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, expoPushToken);
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, devicePushToken);
     }
     await useHttp
       .post("/addBonus", { mail: user?.mail, count: count, expoPushToken })

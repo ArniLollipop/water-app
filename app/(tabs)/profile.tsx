@@ -75,7 +75,6 @@ export default function Profile() {
   };
 
   const getUser = async () => {
-    console.log("get user in profile: ", user);
     if (!user) {
       router.push("/(registration)/login")
     }

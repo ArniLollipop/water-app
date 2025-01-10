@@ -8,11 +8,11 @@ import {
   useRouter,
   useSegments,
 } from "expo-router";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import UIError from "@/components/UI/Error";
-import { SafeAreaView, View } from "react-native";
+import { Button, FlatList, Modal, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import parseJwt from "@/utils/parseJwt";
@@ -20,6 +20,8 @@ import { setUser } from "@/store/slices/userSlice";
 import { updateOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 import useHttp from "@/utils/axios";
 import { setError } from "@/store/slices/errorSlice";
+import { Rating } from "react-native-ratings";
+import UIButton from "@/components/UI/Button";
 
 const EXPO_PUSH_TOKEN_KEY = "expoPushToken";
 
@@ -38,6 +40,29 @@ export {
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
+
+const reviewComment = [
+  {
+    rating: 1,
+    comments: ["Поздняя доставка", "Без звонка", "Без формы", "Грубое общение", "Повреждена упаковка"]
+  },
+  {
+    rating: 2,
+    comments: ["Курьер не помог установить", "Проблемы с оплатой", "Без формы", "Повреждена упаковка", "Грубое общение"]
+  },
+  {
+    rating: 3,
+    comments: ["Поздняя доставка", "Чистая упаковка", "Без звонка", "Курьер не помог установить", "Ошибка оплаты"]
+  },
+  {
+    rating: 4,
+    comments: ["Быстрая доставка", "Чистая упаковка", "Дружелюбный курьер", "Фирменная форма", "Удобное время"]
+  },
+  {
+    rating: 5,
+    comments: ["Быстрая доставка", "Чистая упаковка", "Дружелюбный курьер", "Фирменная форма", "Пунктуальная доставка"]
+  },
+]
 
 
 export default function RootLayout() {
@@ -83,6 +108,11 @@ function RootLayoutNav() {
   const segments = useSegments();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
+  const [order, setOrder] = useState<IOrder | null>()
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [reviewStep, setReviewStep] = useState(1)
+  const [selectedComments, setSelectedComments] = useState<string[]>([]);
 
   const getMe = async () => {
     const token = await SecureStore.getItemAsync("token");
@@ -101,13 +131,11 @@ function RootLayoutNav() {
   useEffect(() => {
     // Добавляем слушателя
     const subscription = Notifications.addNotificationReceivedListener((notification) => {
-      if (notification.request.content.data.newStatus === "bonus") {
-        console.log("Сообщение:", notification.request.content.body);
-        console.log("Данные:", notification.request.content.data);
-      } else {
-        console.log("Сообщение:", notification.request.content.body);
-        console.log("Данные:", notification.request.content.data);
-        dispatch(updateOrderStatus(notification.request.content.data.newStatus === "В пути" ? "onTheWay" : "delivered"))
+      if (notification.request.content.data.newStatus !== "bonus") {
+        if (notification.request.content.data.newStatus === "delivered") {
+          getUnreviewedOrder()
+        }
+        dispatch(updateOrderStatus(notification.request.content.data.newStatus))
       }
     });
   
@@ -145,16 +173,16 @@ function RootLayoutNav() {
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
       if (!expoPushToken) {
         try {
-          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9" });
+          const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
           await useHttp
-            .post<any>("/expoTokenCheck", { where: "tokenData", tokenData })
+            .post<any>("/expoTokenCheck", { where: "tokenData", devicePushToken })
             .then((res: any) => {
               console.log("expoToken check");
             })
             .catch((err: any) => {
               console.log("Ошибка при отправке expoToken:", err);
             });
-          const token = tokenData.data;
+          const token = devicePushToken;
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp.post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync in useEffect error", error })
@@ -174,32 +202,30 @@ function RootLayoutNav() {
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
       if (!expoPushToken) {
         try {
-          const tokenData = await Notifications.getExpoPushTokenAsync({projectId: "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"});
-          const token = tokenData.data;
+          const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+          const token = devicePushToken;
           await useHttp
-          .post("/updateClientDataMobile", {
-            mail: user.mail,
-            field: "expoPushToken",
-            value: expoPushToken,
-          })
-          .then(() => {
-            console.log("updateClientDataMobile in !expoPushToken");
-            
-            dispatch(
-              setUser({
-                ...user,
-                expoPushToken: token,
-              })
-            );
-          })
-          .catch((err: { response: { data: { message: any; }; }; }) => {
-            dispatch(
-              setError({
-                error: true,
-                errorMessage: err?.response?.data?.message,
-              })
-            );
-          });
+            .post("/updateClientDataMobile", {
+              mail: user.mail,
+              field: "expoPushToken",
+              value: expoPushToken,
+            })
+            .then(() => {
+              dispatch(
+                setUser({
+                  ...user,
+                  expoPushToken: token,
+                })
+              );
+            })
+            .catch((err: { response: { data: { message: any; }; }; }) => {
+              dispatch(
+                setError({
+                  error: true,
+                  errorMessage: err?.response?.data?.message,
+                })
+              );
+            });
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp
@@ -239,11 +265,178 @@ function RootLayoutNav() {
     }
   }
 
+  const getUnreviewedOrder = async () => {
+    if (user?.mail !== "" && user?.mail !== null) {
+      await useHttp
+        .post("/getUnreviewedOrder", {
+          mail: user?.mail,
+        })
+        .then(({data}) => {
+          if (data.success) {
+            setOrder(data.order)
+          } else {
+            setOrder(null)
+          }
+        })
+        .catch((err: { response: { data: { message: any; }; }; }) => {
+        });
+    }
+  }
+
   useEffect(() => {      
       sendExpoPushToken()
+      getUnreviewedOrder()
   }, [user?.mail])
 
+  useEffect(() => {
+    if (order) {
+      setShowRatingModal(true);
+    }
+  }, [order]);
+
+  const currentComments =
+    reviewComment.find((item) => item.rating === rating)?.comments || [];
+
+  const toggleCommentSelection = (comment: string) => {
+    if (selectedComments.includes(comment)) {
+      setSelectedComments((prev) =>
+        prev.filter((selected) => selected !== comment)
+      );
+    } else {
+      setSelectedComments((prev) => [...prev, comment]);
+    }
+  };
+
+  const handleSubmit = async () => {
+    await useHttp
+        .post("/addReview", {
+          orderId: order?._id,
+          rating,
+          notes: selectedComments
+        })
+        .then(({data}) => {
+          if (data.success) {
+            setOrder(null)
+            setShowRatingModal(false); // Закрыть модальное окно
+            setReviewStep(1); // Сбросить шаги
+            setRating(0); // Сбросить рейтинг
+            setSelectedComments([]); // Сбросить комментарии
+            getUnreviewedOrder()
+          }
+        }).catch((err: { response: { data: { message: any; }; }; }) => {
+          console.log("Error in addReview");
+        });
+  };
+
   return (
+    <>
+    {order && <Modal
+        visible={showRatingModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {}} // Блокируем возможность закрыть модальное окно
+      >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              alignItems: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.5)", // Полупрозрачный фон
+            }}
+          >
+            <View
+              style={{
+                width: "100%",
+                padding: 16,
+                backgroundColor: "white",
+                borderTopEndRadius: 10,
+                borderTopLeftRadius: 10,
+                alignItems: "center",
+              }}
+            >
+              {reviewStep === 1 && 
+                <Text style={{ fontSize: 20, marginBottom: 16, textAlign: "center" }}>
+                  Пожалуйста, оцените доставку ({order?.address?.name})
+                </Text>
+              }
+
+              {reviewStep === 2 && 
+                <Text style={{ fontSize: 25, fontWeight: "medium", marginBottom: 16, textAlign: "center" }}>
+                  {rating < 4 ? "Что случилось ?" : "Оцените нашу работу"}
+                </Text>
+              }
+              
+              <Rating
+                type="star" // Используем звёзды
+                ratingCount={5} // Количество звёзд
+                imageSize={50} // Размер звёзд
+                startingValue={0}
+                onFinishRating={(value: SetStateAction<number>) => {setRating(value); setSelectedComments([])}} // Устанавливаем рейтинг
+                style={{ marginBottom: 46 }}
+              />
+              {/* Добавьте компонент для оценки */}
+              {reviewStep === 1 &&
+                <>
+                  <UIButton
+                    onPress={() => {
+                      if (rating > 0) {
+                        setReviewStep(2)
+                      }
+                    }}
+                    isLoading={rating <= 0}
+                    type="default"
+                    text="Оценить"
+                  />
+                  <View style={{ height: 20 }} />
+                </>
+              }
+
+              {reviewStep === 2 && 
+                <>
+                  <View style={{ height: 1, backgroundColor: "#f7f7f7", width: "100%" }} />
+                  <FlatList
+                    data={currentComments}
+                    keyExtractor={(item) => item}
+                    style={{ marginBottom: 26 }}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        onPress={() => toggleCommentSelection(item)}
+                        style={{
+                          padding: 10,
+                          marginVertical: 5,
+                          backgroundColor: selectedComments.includes(item)
+                            ? "#d1e7dd"
+                            : "#f8f9fa",
+                          borderRadius: 5,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: selectedComments.includes(item)
+                              ? "#0f5132"
+                              : "#212529",
+                          }}
+                        >
+                          {item}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+
+                  <UIButton
+                    onPress={handleSubmit}
+                    type="default"
+                    text="Оценить"
+                  />
+                  <View style={{ height: 20 }} />
+                </>
+              }
+            </View>
+          </View>
+      </Modal>
+    }
+    
     <View
       style={{
         flex: 1,
@@ -273,5 +466,6 @@ function RootLayoutNav() {
           <UIError />
       </SafeAreaView>
     </View>
+    </>
   );
 }

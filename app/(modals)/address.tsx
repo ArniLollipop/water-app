@@ -16,9 +16,11 @@ const Address = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   const [addresses, setAddresses] = useState([] as IAddress[]);
   const [newAddress, setNewAddress] = useState({
     mail: user?.mail,
+    name: "",
     city: "Алматы",
     street: "",
     house: "",
@@ -35,15 +37,18 @@ const Address = () => {
       });
   };
 
-  const addClientAddress = async () => {
+  const addOrUpdateAddress = async () => {
     setIsLoading(true);
+    const url = isUpdate ? "/updateClientAddress" : "/addClientAddress";
     await useHttp
-      .post("/addClientAddress", newAddress)
+      .post(url, newAddress)
       .then(() => {
         getAddresses();
         setIsAdding(false);
+        setIsUpdate(false);
         setNewAddress({
           mail: user?.mail,
+          name: "",
           city: "Алматы",
           street: "",
           house: "",
@@ -85,9 +90,32 @@ const Address = () => {
     }
   };
 
+  const handleSelectAddress = (id: string) => {
+    const selectedAddress = addresses.find((addr) => addr._id === id);
+    if (selectedAddress) {
+      setNewAddress({ mail: user?.mail, ...selectedAddress }); // Устанавливаем выбранный адрес для редактирования
+      
+      setIsUpdate(true); // Переходим в режим редактирования
+    }
+  };
+
   useEffect(() => {
     getAddresses();
   }, []);
+
+  useEffect(() => {
+    if (isAdding) {
+      setNewAddress({
+        mail: user?.mail,
+        name: "",
+        city: "Алматы",
+        street: "",
+        house: "",
+        link: "",
+      });
+      setIsUpdate(false)
+    }
+  }, [isAdding])
 
   return (
     <View style={sharedStyles.container}>
@@ -103,9 +131,10 @@ const Address = () => {
           withoutDot={true}
           items={getFormattedAddresses(addresses)}
           setNew={setIsAdding}
+          setSelect={handleSelectAddress} // Передаем обработчик выбора адреса
           addText="Добавить адрес"
         />
-        {isAdding && (
+        {(isAdding || isUpdate) && (
           <View style={{ width: "100%", marginVertical: 20, gap: 10 }}>
             <Text
               style={{ fontSize: 20, color: Colors.text, fontWeight: "500" }}>
@@ -116,6 +145,14 @@ const Address = () => {
               placeholder="Город"
               value={"Алматы"}
               onChangeText={()=>{}}
+            />
+            <UIInput
+              type="filled"
+              placeholder="Название"
+              value={newAddress.name}
+              onChangeText={(text) =>
+                setNewAddress({ ...newAddress, name: text })
+              }
             />
             <UIInput
               type="filled"
@@ -151,9 +188,9 @@ const Address = () => {
 
             <UIButton
               isLoading={isLoading}
-              onPress={addClientAddress}
+              onPress={addOrUpdateAddress} // Универсальная функция добавления/редактирования
               type="default"
-              text="Добавить"
+              text={isUpdate ? "Сохранить изменения" : "Добавить"}
               styles={{ marginTop: 10 }}
             />
           </View>

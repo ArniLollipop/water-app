@@ -151,6 +151,7 @@ const Order = () => {
       let form = {
         clientId: user?._id,
         address: {
+          name: address?.name,
           actual: address?.street + " " + address?.house,
           link: address?.link,
         },
@@ -203,6 +204,7 @@ const Order = () => {
     await useHttp
       .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
       .then((res) => {
+        setSum(res.data.order.sum)
         setLastOrder(res.data.order);
         const tempSelectedAddressId = addresses.find(
           (a) => `${a.street} ${a.house}` === res.data.order.address.actual
@@ -210,6 +212,7 @@ const Order = () => {
         if (tempSelectedAddressId) setSelectedAddressId(tempSelectedAddressId);
         dispatch(setCart({ cart: res.data.order.products }));
         setSelectedPayment(res.data.order.opForm as string);
+        
       })
       .catch((error) => {
         dispatch(
@@ -256,6 +259,12 @@ const Order = () => {
       );
     }
   }, [user?.cart]);
+
+  useEffect(() => {
+    if (user) {
+      setPrices({price12: user.price12, price19: user.price19})
+    }
+  }, [user])
 
   return (
     <View style={sharedStyles.container}>

@@ -70,6 +70,11 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
                   ? "Доставлен"
                   : "Отменен"}
               </Text>
+              <Text style={{ 
+                fontSize: 15,
+                fontWeight: "500",
+                color: Colors.text
+              }}>{lastOrder?.address?.name}</Text>
             </View>
           </View>
           {lastOrder?.products?.b12 && lastOrder?.products?.b12 > 0 && (

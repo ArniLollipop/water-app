@@ -2,8 +2,8 @@
   "expo": {
     "name": "Tibetskaya",
     "slug": "tibetskaya",
-    "projectId": "44ab56bf-15dd-4f12-9c01-c29f592dc6c9",
-    "version": "1.0.3",
+    "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/512.png",
     "notification": {
@@ -23,7 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "newArchEnabled": true,
-      "buildNumber": "2",
+      "buildNumber": "1",
       "bundleIdentifier": "com.tibetskaya.tibetskaya",
       "infoPlist": {
         "UIBackgroundModes": [
@@ -71,12 +71,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "44ab56bf-15dd-4f12-9c01-c29f592dc6c9"
+        "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90"
       },
       "router": {
         "origin": false
       }
     },
-    "owner": "kanat_akhmetov"
+    "owner": "edil_kulzhabay"
   }
 }

@@ -29,6 +29,7 @@ interface IUser {
 
 interface IAddress {
   _id?: string;
+  name: string;
   mail?: string;
   city: string;
   street: string;
@@ -56,6 +57,7 @@ interface IOrder {
   transferred: boolean;
   updatedAt: string;
   address: {
+    name: string;
     actual: string;
     link: string;
   };
