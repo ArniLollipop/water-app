@@ -4,7 +4,7 @@ import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { usePathname } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
 
 export default function Story() {
@@ -13,7 +13,7 @@ export default function Story() {
 
   const [page, setPage] = useState(1);
   const [orders, setOrders] = useState([] as IOrder[]);
-  const [haveMore, setHaveMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false); // Флаг для предотвращения дублирования запросов
 
   const getHistory = useCallback(async () => {
@@ -28,111 +28,109 @@ export default function Story() {
       })
       .then((res) => {
         const newOrders = res.data.orders;
+        
         if (newOrders.length === 0) {
-          setHaveMore(true)
+          setHasMore(false)
         }
         setOrders((prevOrders) => [...prevOrders, ...newOrders]);
       })
       .catch((error) => console.error(error))
       .finally(() => setIsLoading(false));
-  }, [page, user?._id, isLoading]);
+  }, [page, user?._id, isLoading, hasMore])
 
-  const handleScroll = useCallback(
-    ({ nativeEvent }) => {
-      const buffer = 300; // Буфер перед концом списка
-      const isNearBottom =
-        nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
-        nativeEvent.contentSize.height - buffer;
-
-      if (isNearBottom && !isLoading && !haveMore) {
-        setPage((prevPage) => prevPage + 1);
-      }
-    },
-    [isLoading]
-  );
-
-  // Сброс состояния при каждом входе на страницу
   useEffect(() => {
-    if (pathname === "/story") {
+    if (pathname.includes("story") && orders.length > 0) {
       setPage(1);
       setOrders([]);
-      setHaveMore(false);
+      setHasMore(true);
+      setIsLoading(false);
     }
   }, [pathname]);
 
-
   useEffect(() => {
       getHistory();
-  }, [page, haveMore]);
+  }, [page]);
+
+  const renderItem = ({ item }: { item: IOrder }) => (
+    <View style={storyStyles.item}>
+      <View style={storyStyles.itemLeft}>
+        <View style={{ gap: 10, maxWidth: 200 }}>
+          <Text
+            style={{
+              color: Colors.text,
+              fontSize: 16,
+              fontWeight: "400",
+            }}
+          >
+            {item.createdAt.split("T")[0].split("-").reverse().join("/")}
+          </Text>
+          <Text
+            style={{
+              color: Colors.text,
+              fontSize: 16,
+              fontWeight: "500",
+            }}
+          >
+            {item?.address?.actual}
+          </Text>
+        </View>
+        <Text
+          style={{
+            color: Colors.text,
+            fontSize: 16,
+            fontWeight: "500",
+          }}
+        >
+          {item.sum} ₸
+        </Text>
+      </View>
+      <View style={storyStyles.itemRight}>
+        <View style={storyStyles.innerBottom}>
+          <Text style={storyStyles.innerBottomRight}>
+            12.5 л - {item.products.b12} шт
+          </Text>
+          <Text style={storyStyles.innerBottomRight}>
+            18.9 л - {item.products.b19} шт
+          </Text>
+        </View>
+        <Text>
+          {item?.status === "awaitingOrder"
+            ? "В очереди"
+            : item?.status === "onTheWay"
+            ? "В пути"
+            : item?.status === "delivered"
+            ? "Доставлен"
+            : "Отменен"}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
-    <ScrollView
-      onScroll={handleScroll}
-      scrollEventThrottle={100} // Ограничиваем частоту вызова функции (200 мс)
-      contentContainerStyle={{ minHeight: "100%" }}
-    >
-      <View style={sharedStyles.container}>
-        {orders.length > 0 &&
-          orders.map((order) => {
-            return (
-              <View key={order._id} style={storyStyles.item}>
-                <View style={storyStyles.itemLeft}>
-                  <View style={{ gap: 10, maxWidth: 200 }}>
-                    <Text
-                      style={{
-                        color: Colors.text,
-                        fontSize: 16,
-                        fontWeight: "400",
-                      }}>
-                      {order.createdAt
-                        .split("T")[0]
-                        .split("-")
-                        .reverse()
-                        .join("/")}
-                    </Text>
-                    <Text
-                      style={{
-                        color: Colors.text,
-                        fontSize: 16,
-                        fontWeight: "500"
-                      }}>
-                      {order?.address?.actual}
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      color: Colors.text,
-                      fontSize: 16,
-                      fontWeight: "500",
-                    }}>
-                    {order.sum} ₸
-                  </Text>
-                </View>
-                <View style={storyStyles.itemRight}>
-                  <View style={storyStyles.innerBottom}>
-                    <Text style={storyStyles.innerBottomRight}>
-                      12.5 л - {order.products.b12} шт
-                    </Text>
-                    <Text style={storyStyles.innerBottomRight}>
-                      18.9 л - {order.products.b19} шт
-                    </Text>
-                  </View>
-
-                  <Text>
-                    {order?.status == "awaitingOrder"
-                      ? "В очереди"
-                      : order?.status == "onTheWay"
-                      ? "В пути"
-                      : order?.status == "delivered"
-                      ? "Доставлен"
-                      : "Отменен"}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-      </View>
-    </ScrollView>
+    <View style={sharedStyles.container}>
+      <FlatList
+        data={orders}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+        onEndReached={() => {
+          if (!isLoading && hasMore) {
+            setPage((prevPage) => prevPage + 1);
+          }
+        }}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={
+          isLoading ? (
+            <Text style={{ textAlign: "center", padding: 10 }}>Загрузка...</Text>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isLoading && orders.length === 0 ? (
+            <Text style={{ textAlign: "center", padding: 10 }}>Нет данных</Text>
+          ) : null
+        }
+      />
+    </View>
   );
 }
 

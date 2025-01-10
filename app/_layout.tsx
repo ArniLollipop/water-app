@@ -128,6 +128,17 @@ function RootLayoutNav() {
     if (!user) getMe();
   }, [segments]);
 
+  async function getLastOrder() {
+    await useHttp
+      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
+      .then((res) => {
+        dispatch(updateOrderStatus(res.data.order.status))
+      })
+      .catch(() => {
+        console.log("no last order");
+      });
+  }
+
   useEffect(() => {
     // Добавляем слушателя
     const subscription = Notifications.addNotificationReceivedListener((notification) => {
@@ -135,7 +146,7 @@ function RootLayoutNav() {
         if (notification.request.content.data.newStatus === "delivered") {
           getUnreviewedOrder()
         }
-        dispatch(updateOrderStatus(notification.request.content.data.newStatus))
+        getLastOrder()
       }
     });
   
