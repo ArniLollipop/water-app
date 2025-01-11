@@ -50,7 +50,7 @@ export default function Profile() {
     setFirstAddress({} as IAddress)
     setPhone("")
 
-    const expoPushToken = SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
+    const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
 
     await useHttp
       .post("/updateClientDataMobile", {
