@@ -12,7 +12,7 @@ import { SetStateAction, useEffect, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import * as SecureStore from "expo-secure-store";
 import UIError from "@/components/UI/Error";
-import { Button, FlatList, Modal, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
+import { Button, FlatList, Modal, Platform, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import parseJwt from "@/utils/parseJwt";
@@ -184,16 +184,25 @@ function RootLayoutNav() {
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
       if (!expoPushToken) {
         try {
-          const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+          let token = null;
+          // Получение токена в зависимости от платформы
+          if (Platform.OS === "ios") {
+            const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+            token = expoPushToken;
+          } else if (Platform.OS === "android") {
+            const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+            token = devicePushToken;
+          }
+          console.log(token);
+          
           await useHttp
-            .post<any>("/expoTokenCheck", { where: "tokenData", devicePushToken })
+            .post<any>("/expoTokenCheck", { where: "tokenData", token })
             .then((res: any) => {
               console.log("expoToken check");
             })
             .catch((err: any) => {
               console.log("Ошибка при отправке expoToken:", err);
             });
-          const token = devicePushToken;
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp.post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync in useEffect error", error })
@@ -213,8 +222,15 @@ function RootLayoutNav() {
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY)
       if (!expoPushToken) {
         try {
-          const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
-          const token = devicePushToken;
+          let token = null;
+          // Получение токена в зависимости от платформы
+          if (Platform.OS === "ios") {
+            const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+            token = expoPushToken;
+          } else if (Platform.OS === "android") {
+            const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+            token = devicePushToken;
+          }
           await useHttp
             .post("/updateClientDataMobile", {
               mail: user.mail,

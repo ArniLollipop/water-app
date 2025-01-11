@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   Image,
+  Platform,
 } from "react-native";
 import UIIcon from "@/components/UI/Icon";
 import Colors from "@/constants/Colors";
@@ -111,9 +112,17 @@ const Bonus = () => {
         console.log("Permission for notifications not granted.");
         return;
       }
-      const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
-      console.log("Expo Push Token:", devicePushToken);
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, devicePushToken); // сохраняем токен в состоянии
+      let token = null;
+      // Получение токена в зависимости от платформы
+      if (Platform.OS === "ios") {
+        const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+        token = expoPushToken;
+      } else if (Platform.OS === "android") {
+        const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+        token = devicePushToken;
+      }
+      console.log("Expo Push Token:", token);
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token); // сохраняем токен в состоянии
     })();
   }, []);
 
@@ -221,11 +230,19 @@ const Bonus = () => {
     let expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
 
     if (!expoPushToken) {
-      const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
-      expoPushToken = devicePushToken;
+      let token = null;
+      // Получение токена в зависимости от платформы
+      if (Platform.OS === "ios") {
+        const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+        token = expoPushToken;
+      } else if (Platform.OS === "android") {
+        const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
+        token = devicePushToken;
+      }
+      expoPushToken = token;
 
       // Сохраните токен в SecureStore, если он новый
-      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, devicePushToken);
+      await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
     }
     await useHttp
       .post("/addBonus", { mail: user?.mail, count: count, expoPushToken })
