@@ -158,29 +158,12 @@ function RootLayoutNav() {
 
   useEffect(() => {
     (async () => {
-      await useHttp
-        .post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync in useEffect first log" })
-        .then((res: any) => {
-          console.log("expoToken check");
-        })
-        .catch((err: any) => {
-          console.log("Ошибка при отправке expoToken:", err);
-        });
       const { status: pushStatus } = await Notifications.requestPermissionsAsync();
-      await useHttp
-        .post<any>("/expoTokenCheck", { where: "requestPermissionsAsync", pushStatus })
-        .then((res: any) => {
-          console.log("expoToken check");
-        })
-        .catch((err: any) => {
-          console.log("Ошибка при отправке expoToken:", err);
-        });
       if (pushStatus !== "granted") {
         console.log("Permission for notifications not granted.");
         return;
       }
 
-      // Проверка и сохранение токена уведомлений
       const expoPushToken = await SecureStore.getItemAsync(EXPO_PUSH_TOKEN_KEY);
       if (!expoPushToken) {
         try {
@@ -193,16 +176,6 @@ function RootLayoutNav() {
             const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
             token = devicePushToken;
           }
-          console.log(token);
-          
-          await useHttp
-            .post<any>("/expoTokenCheck", { where: "tokenData", token })
-            .then((res: any) => {
-              console.log("expoToken check");
-            })
-            .catch((err: any) => {
-              console.log("Ошибка при отправке expoToken:", err);
-            });
           await SecureStore.setItemAsync(EXPO_PUSH_TOKEN_KEY, token);
         } catch (error) {
           await useHttp.post<any>("/expoTokenCheck", { where: "getExpoPushTokenAsync in useEffect error", error })
@@ -227,6 +200,8 @@ function RootLayoutNav() {
           if (Platform.OS === "ios") {
             const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
             token = expoPushToken;
+            console.log("expoPushToken: ", expoPushToken);
+            
           } else if (Platform.OS === "android") {
             const { data: devicePushToken } = await Notifications.getDevicePushTokenAsync();
             token = devicePushToken;
@@ -235,7 +210,7 @@ function RootLayoutNav() {
             .post("/updateClientDataMobile", {
               mail: user.mail,
               field: "expoPushToken",
-              value: expoPushToken,
+              value: token,
             })
             .then(() => {
               dispatch(
