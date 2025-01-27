@@ -262,9 +262,28 @@ const Order = () => {
 
   useEffect(() => {
     if (user) {
-      setPrices({price12: user.price12, price19: user.price19})
+      setPrices({price12: user.price12 || 0, price19: user.price19 || 0})
     }
   }, [user])
+
+  const getMinDate = () => {
+    const now = new Date(); // Текущая дата и время
+    const tomorrow = new Date();
+    tomorrow.setDate(now.getDate() + 1); // Завтрашний день
+  
+    // Если user?.type === false, возвращаем завтрашний день
+    if (user?.type === false) {
+      return tomorrow;
+    }
+  
+    // Если user?.type === true и текущее время больше 12:00, возвращаем завтрашний день
+    if (user?.type === true && now.getHours() >= 12) {
+      return tomorrow;
+    }
+  
+    // В остальных случаях возвращаем сегодняшнюю дату
+    return now;
+  };
 
   return (
     <View style={sharedStyles.container}>
@@ -343,7 +362,7 @@ const Order = () => {
             }
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
-            minDate={new Date()}
+            minDate={getMinDate()}
           />
         </View>
 

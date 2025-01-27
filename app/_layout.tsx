@@ -356,12 +356,11 @@ function RootLayoutNav() {
                 alignItems: "center",
               }}
             >
-              {reviewStep === 1 && 
+              {reviewStep === 1 && order?.address?.name &&
                 <Text style={{ fontSize: 20, marginBottom: 16, textAlign: "center" }}>
-                  Пожалуйста, оцените доставку ({order?.address?.name})
+                  {order?.address?.name && <Text>Пожалуйста, оцените доставку ({order?.address?.name})</Text>}
                 </Text>
               }
-
               {reviewStep === 2 && 
                 <Text style={{ fontSize: 25, fontWeight: "medium", marginBottom: 16, textAlign: "center" }}>
                   {rating < 4 ? "Что случилось ?" : "Оцените нашу работу"}

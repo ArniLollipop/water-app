@@ -70,21 +70,24 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
                   ? "Доставлен"
                   : "Отменен"}
               </Text>
-              <Text style={{ 
-                fontSize: 15,
-                fontWeight: "500",
-                color: Colors.text
-              }}>{lastOrder?.address?.name}</Text>
+              {lastOrder?.address?.name && 
+                <Text style={{ 
+                  fontSize: 15,
+                  fontWeight: "500",
+                  color: Colors.text
+                }}>{lastOrder?.address?.name}</Text>
+              }
             </View>
           </View>
-          {lastOrder?.products?.b12 && lastOrder?.products?.b12 > 0 && (
+          {lastOrder?.products?.b12 > 0 && (
             <View style={recentStyles.innerBottom}>
               <Text style={recentStyles.innerBottomRight}>
                 12.5 л - {lastOrder.products.b12} шт
               </Text>
             </View>
           )}
-          {lastOrder?.products?.b19 && lastOrder?.products?.b19 > 0 && (
+
+          {lastOrder?.products?.b19 > 0 && (
             <View style={recentStyles.innerBottom}>
               <Text style={recentStyles.innerBottomRight}>
                 18.9 л - {lastOrder.products.b19} шт
@@ -103,7 +106,7 @@ export default function HomeRecent(props: { lastOrder: IOrder }) {
         <View style={recentStyles.bgIcon}>
           <UIIcon name="express" />
         </View>
-        <View style={{}}></View>
+        <View></View>
       </View>
 
       <View style={recentStyles.buttons}>

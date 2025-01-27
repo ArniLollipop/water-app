@@ -25,6 +25,7 @@ interface IUser {
   };
   haveCompletedOrder?: boolean;
   expoPushToken?: string;
+  type?: boolean;
 }
 
 interface IAddress {
