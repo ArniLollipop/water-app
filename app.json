@@ -3,7 +3,7 @@
     "name": "Tibetskaya",
     "slug": "tibetskaya",
     "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/512.png",
     "notification": {

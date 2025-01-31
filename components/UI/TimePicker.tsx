@@ -19,6 +19,7 @@ type UITimePickerModalProps = {
   minDate: Date;
   selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
+  userType: boolean
 };
 
 const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
@@ -26,12 +27,13 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   minDate,
   selectedDate,
   setSelectedDate,
+  userType
 }) => {
   const { user } = useSelector((state: RootState) => state.user);
 
   const [isVisible, setIsVisible] = useState(false);
   const [step, setStep] = useState<"date" | "time">("date");
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date(minDate));
 
   const dateScrollViewRef = useRef<FlatList<Date>>(null);
 
@@ -82,17 +84,19 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   };
 
   const isWorkHour = () => {
+    if (!userType) {
+      return false
+    }
     const time = new Date(minDate).toLocaleTimeString();
     const [hour, minute] = time
       .split(":")
       .map((item) => parseInt(item)) as number[];
+    
+    if (hour >= 12) {
+      return false
+    }
 
-    const workStart = 9 * 60 * 60;
-    const second = hour * 60 * 60 + minute * 60;
-    const halfHour = 60 * 60 + 30 * 60;
-    const workEnd = 21 * 60 * 60;
-
-    return second + halfHour <= workEnd;
+    return true
   };
 
   const datesInMonth = () => {

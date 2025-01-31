@@ -236,9 +236,12 @@ const Order = () => {
 
   useEffect(() => {
     getAddresses();
+    if (!user?.type) {
+      setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+    } else
     if (
       selectedDate?.toLocaleDateString() == new Date().toLocaleDateString() &&
-      selectedDate.getHours() >= 17
+      selectedDate.getHours() >= 12
     ) {
       setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
     }
@@ -363,6 +366,7 @@ const Order = () => {
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             minDate={getMinDate()}
+            userType={user?.type || false}
           />
         </View>
 
