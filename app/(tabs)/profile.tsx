@@ -17,9 +17,10 @@ import * as SecureStore from "expo-secure-store";
 import useHttp from "@/utils/axios";
 import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser } from "@/store/slices/userSlice";
+import { setCart, setUser } from "@/store/slices/userSlice";
 import { setError } from "@/store/slices/errorSlice";
 import MaskedUIInput from "@/components/UI/MaskedInput";
+import { clearOrderStatus } from "@/store/slices/lastOrderStatusSlice";
 
 const PRESS_COUNT_KEY = "press_count";
 const CURRENT_AMOUNT_KEY = "current_amount";
@@ -71,6 +72,15 @@ export default function Profile() {
     await SecureStore.deleteItemAsync(BACKGROUND_TASK_NAME);
     await SecureStore.deleteItemAsync(EXPO_PUSH_TOKEN_KEY);
     dispatch(setUser(null))
+    dispatch(clearOrderStatus())
+    dispatch(
+      setCart({
+        cart: {
+          b12: 0,
+          b19: 0
+        },
+      })
+    );
     router.push("/(tabs)");
   };
 

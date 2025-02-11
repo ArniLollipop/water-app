@@ -77,6 +77,12 @@ export default function Login() {
   const routeByLinkToPolicy = () => {
     Linking.openURL("https://tibetskaya.kz/privacyPolicy");
   };
+  const routeByLinkToPublicOffer = () => {
+    Linking.openURL("https://tibetskaya.kz/publicOffer");
+  };
+  const routeByLinkToPaymentTerms = () => {
+    Linking.openURL("https://tibetskaya.kz/paymentTerms");
+  };
 
   return (
     <ScrollView
@@ -107,17 +113,29 @@ export default function Login() {
               fontWeight: "500",
               textAlign: "center",
             }}>
-            Нажимая на кнопку "Отправить Смс", вы соглашаетесь с{" "}
+            Нажимая кнопку "Отправить Код", вы подтверждаете, что ознакомились и принимаете условия{" "}
             <Text
               style={{ color: Colors.blue, textDecorationLine: "underline" }}
               onPress={routeByLinkToAgreement}>
-              пользовательским соглашением
+              Пользовательского соглашения
             </Text>{" "}
+            ,{" "}
+            <Text
+              style={{ color: Colors.blue, textDecorationLine: "underline" }}
+              onPress={routeByLinkToPublicOffer}>
+              Публичной оферты
+            </Text>
+            ,{" "}
+            <Text
+              style={{ color: Colors.blue, textDecorationLine: "underline" }}
+              onPress={routeByLinkToPaymentTerms}>
+              Условий оплаты
+            </Text>
             и{" "}
             <Text
               style={{ color: Colors.blue, textDecorationLine: "underline" }}
               onPress={routeByLinkToPolicy}>
-              политикой конфиденциальности
+              Политики конфиденциальности
             </Text>
           </Text>
         </View>
@@ -126,7 +144,7 @@ export default function Login() {
         <UIButton
           isLoading={isLoading}
           type="default"
-          text="Отправить Смс"
+          text="Отправить Код"
           onPress={handleSendMail}
         />
       </View>

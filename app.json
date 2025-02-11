@@ -5,7 +5,7 @@
     "projectId": "7f565cac-ac07-46fe-819b-90eaf1474e90",
     "version": "1.0.6",
     "orientation": "portrait",
-    "icon": "./assets/images/512.png",
+    "icon": "./assets/images/512IOS.png",
     "notification": {
       "icon": "./assets/images/48.png",
       "color": "#EF4130"
@@ -17,7 +17,7 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/512.png",
+      "image": "./assets/images/512IOS.png",
       "resizeMode": "contain"
     },
     "ios": {
@@ -41,7 +41,7 @@
     "android": {
       "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/512.png",
+        "foregroundImage": "./assets/images/512IOS.png",
         "backgroundColor": "#EF4130"
       },
       "package": "com.tibetskaya.tibetskaya",
