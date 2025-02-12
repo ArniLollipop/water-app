@@ -392,10 +392,13 @@ const Bonus = () => {
             2. За выполнение ежедневной цели — +20 бонусов.
           </Text>
           <Text style={styles.rulesText}>
-            3. За каждые 500 бонусов — скидка 10% на аксессуары (до 50%).
+            3. За каждый заказ воды — +50 бонусов.
           </Text>
           <Text style={styles.rulesText}>
-            4. За каждый заказ воды — +50 бонусов.
+            4. 1 бонус = 1 тенге.
+          </Text>
+          <Text style={styles.rulesText}>
+            5. Накопленными бонусами можно оплатить аксессуары до 50% от их стоимости.
           </Text>
         </View>
       </View>
@@ -465,6 +468,12 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     color: Colors.text,
     fontSize: 16,
+  },
+  rulesText2: {
+    marginVertical: 5,
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: 500
   },
   leftItems: {
     flexDirection: "column-reverse",

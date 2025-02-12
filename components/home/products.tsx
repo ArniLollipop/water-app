@@ -107,14 +107,25 @@ export default function Products(props: {
         {products.map((product, index) => (
           <View key={index} style={styles.one}>
             <View style={styles.image}>
-              <Image
-                source={require("../../assets/images/smallSu.png")}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  objectFit: "contain",
-                }}
-              />
+              {product.name === "Вода 12.5 л" ? 
+                <Image
+                  source={require("../../assets/images/b12.png")}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    objectFit: "contain",
+                  }}
+                /> :
+                <Image
+                  source={require("../../assets/images/b19.png")}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    objectFit: "contain",
+                  }}
+                />  
+              }
+              
             </View>
             <View style={styles.right}>
               <View>
