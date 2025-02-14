@@ -100,6 +100,22 @@ export default function Products(props: {
     }
   }
 
+  const getPrice = (name: string) => {
+    if (name === "Вода 12.5 л") {
+      if (user?.price12) {
+        return `${user?.price12} ₸`
+      } else {
+        return `900 ₸`
+      }
+    } else {
+      if (user?.price19) {
+        return `${user?.price19} ₸`
+      } else {
+        return `900 ₸`
+      }
+    }
+  }
+
   return (
     <View style={productStyles.products}>
       <Text style={styles.title}>Товары</Text>
@@ -131,6 +147,7 @@ export default function Products(props: {
               <View>
                 <Text style={styles.productName}>{product.name}</Text>
                 <Text style={styles.productDesc}>негазированная</Text>
+                <Text style={styles.productPrice}>{getPrice(product.name)}</Text>
               </View>
               {props.isOrderPage || product.count > 0 ? (
                 <View style={styles.oneCart}>
@@ -204,7 +221,7 @@ const productStyles = StyleSheet.create({
     padding: 10,
     flexDirection: "row",
     gap: 5,
-    alignItems: "stretch",
+    alignItems: "center",
     justifyContent: "space-between",
   },
 
@@ -234,6 +251,13 @@ const productStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "400",
     color: Colors.gray,
+  },
+
+  productPrice: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: Colors.text,
+    marginBottom: 10
   },
 
   cartButton: {

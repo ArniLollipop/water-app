@@ -5,6 +5,7 @@ import sharedStyles from "@/styles/style";
 import useHttp from "@/utils/axios";
 import { useEffect, useState } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -51,6 +52,7 @@ export default function Support() {
 
   return (
     <View style={sharedStyles.container}>
+      <ScrollView>
       {lastOrder && <HomeRecent lastOrder={lastOrder} />}
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
@@ -66,6 +68,23 @@ export default function Support() {
           </TouchableOpacity>
         </View>
       </View>
+      <View style={supportStyles.subtitle}>
+        <Text style={supportStyles.listHead}>О нас</Text>
+      </View>
+      <View>
+        <Text style={supportStyles.text}>
+        «Тибетская» - один из первых брендов воды в Казахстане, который завоевал сердца многих потребителей благодаря своему безукоризненному качеству и уникальности. История этой воды начинается с 1996 года, и за это время она зарекомендовала себя, как одна из самых уникальных и качественных водных брендов на рынке.
+        </Text>
+      </View>
+      <View style={supportStyles.subtitle}>
+        <Text style={supportStyles.listHead}>Наш адрес:</Text>
+      </View>
+      <View>
+        <Text style={supportStyles.text}>
+        г. Алматы, ул. Шевченко, д. 7/75, оф. 59а
+        </Text>
+      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -92,4 +111,13 @@ const supportStyles = StyleSheet.create({
     color: Colors.blue,
     textDecorationLine: "underline",
   },
+  subtitle: {
+    marginTop: 15
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#000",
+    marginTop: 5
+  }
 });
