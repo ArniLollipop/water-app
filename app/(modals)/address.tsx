@@ -25,6 +25,7 @@ const Address = () => {
     street: "",
     house: "",
     link: "",
+    phone: "",
   } as IAddress);
 
   const getAddresses = async () => {
@@ -53,6 +54,7 @@ const Address = () => {
           street: "",
           house: "",
           link: "",
+          phone: "",
         });
       })
       .catch((err) => {
@@ -112,6 +114,7 @@ const Address = () => {
         street: "",
         house: "",
         link: "",
+        phone: ""
       });
       setIsUpdate(false)
     }
@@ -138,7 +141,7 @@ const Address = () => {
           <View style={{ width: "100%", marginVertical: 20, gap: 10 }}>
             <Text
               style={{ fontSize: 20, color: Colors.text, fontWeight: "500" }}>
-              Новый адрес
+              {isUpdate ? "Изменение адреса" : "Новый адрес"}
             </Text>
             <UIInput
               type="filled"
@@ -172,6 +175,14 @@ const Address = () => {
               value={newAddress.house}
               onChangeText={(text) =>
                 setNewAddress({ ...newAddress, house: text })
+              }
+            />
+            <UIInput
+              type="filled"
+              placeholder="Номер"
+              value={newAddress.phone}
+              onChangeText={(text) =>
+                setNewAddress({ ...newAddress, phone: text })
               }
             />
             <UIInput

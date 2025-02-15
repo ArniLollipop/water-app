@@ -36,6 +36,7 @@ interface IAddress {
   street: string;
   house: string;
   link: string;
+  phone: string;
 }
 
 interface IOrder {

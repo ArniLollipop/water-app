@@ -26,7 +26,65 @@ const Order = () => {
   const [sum, setSum] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastOrder, setLastOrder] = useState<IOrder | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date() as Date | null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [startTime, setStartTime] = useState<number>(14);
+  const [endTime, setEndTime] = useState<number>(15);
+
+
+  async function getLastOrder() {
+    await useHttp
+      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
+      .then((res) => {
+        setSum(res.data.order.sum)
+        setLastOrder(res.data.order);
+        const tempSelectedAddressId = addresses.find(
+          (a) => `${a.street} ${a.house}` === res.data.order.address.actual
+        )?._id;
+        if (tempSelectedAddressId) setSelectedAddressId(tempSelectedAddressId);
+        dispatch(setCart({ cart: res.data.order.products }));
+        setSelectedPayment(res.data.order.opForm as string);
+        
+      })
+      .catch((error) => {
+        dispatch(
+          setError({
+            error: true,
+            errorMessage:
+              "Не удалось получить последний заказ" + error?.response?.status,
+          })
+        );
+      });
+  }
+
+  const getMinDate = () => {
+
+    if (lastOrder?.status === "awaitingOrder" || lastOrder?.status === "onTheWay") {
+      const date = new Date(lastOrder?.date?.d)
+      return date
+    }
+
+    const now = new Date(); // Текущая дата и время
+    const tomorrow = new Date();
+    tomorrow.setDate(now.getDate() + 1); // Завтрашний день
+
+    if (tomorrow.getDay() === 0) {
+      tomorrow.setDate(tomorrow.getDate() + 1);
+    }
+  
+    // Если user?.type === false, возвращаем завтрашний день
+    if (user?.type === false) {
+      return tomorrow;
+    }
+  
+    // Если user?.type === true и текущее время больше 12:00, возвращаем завтрашний день
+    if (user?.type === true && now.getHours() >= 12) {
+      return tomorrow;
+    }
+  
+    // В остальных случаях возвращаем сегодняшнюю дату
+    return now;
+  };
+  
 
   const getCart = async () => {
     await useHttp
@@ -75,16 +133,17 @@ const Order = () => {
   const handleOrder = async () => {
     // clientId, address, products, clientNotes, date, opForm
     
-
     if (selectedDate) {
-      // Если установлена только дата, добавляем время по умолчанию
-      if (!user?.chooseTime) {
-        selectedDate.setHours(12, 0, 0, 0); // Устанавливаем время на 12:00
-      }
+      selectedDate.setHours(12, 0, 0, 0); // Устанавливаем время на 12:00
     }
 
-    console.log("selectedDate: ", selectedDate?.getHours(), selectedDate?.getMinutes());
-    
+    const selectedMonth = selectedDate?.getMonth() || 0
+
+    const fullSelectedDate = 
+      selectedDate?.getFullYear() + "-" + 
+      String(selectedMonth + 1).padStart(2, "0") + "-" + 
+      String(selectedDate?.getDate()).padStart(2, "0");
+
     if (!selectedAddressId) {
       dispatch(
         setError({
@@ -121,10 +180,10 @@ const Order = () => {
         })
       );
     } else if (
-      selectedDate.getHours() < 10 ||
-      selectedDate.getHours() > 19 ||
+      startTime < 10 ||
+      endTime > 19 ||
       (selectedDate.getDate() == new Date().getDate() &&
-        new Date().getHours() >= 18)
+        new Date().getHours() > 18)
     ) {
       dispatch(
         setError({
@@ -148,6 +207,10 @@ const Order = () => {
 
       setIsLoading(true);
 
+      const clientTime = user?.chooseTime ? `${startTime}:00-${endTime}:00` : ""
+
+      const clientDate = {d: fullSelectedDate, time: clientTime}
+
       let form = {
         clientId: user?._id,
         address: {
@@ -157,13 +220,7 @@ const Order = () => {
         },
         products: user?.cart,
         // clientNotes: "",
-        date: {
-          d: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
-          time:
-            user?.chooseTime && selectedDate
-              ? selectedDate.toISOString().split("T")[1].split(".")[0]
-              : "",
-        },
+        date: clientDate,
         opForm: selectedPayment,
       };
 
@@ -200,31 +257,6 @@ const Order = () => {
     await useHttp.post("/cleanCart", { mail: user?.mail });
   }
 
-  async function getLastOrder() {
-    await useHttp
-      .post<{ order: IOrder }>("/getLastOrderMobile", { clientId: user?._id })
-      .then((res) => {
-        setSum(res.data.order.sum)
-        setLastOrder(res.data.order);
-        const tempSelectedAddressId = addresses.find(
-          (a) => `${a.street} ${a.house}` === res.data.order.address.actual
-        )?._id;
-        if (tempSelectedAddressId) setSelectedAddressId(tempSelectedAddressId);
-        dispatch(setCart({ cart: res.data.order.products }));
-        setSelectedPayment(res.data.order.opForm as string);
-        
-      })
-      .catch((error) => {
-        dispatch(
-          setError({
-            error: true,
-            errorMessage:
-              "Не удалось получить последний заказ" + error?.response?.status,
-          })
-        );
-      });
-  }
-
   const getFormattedAddresses = (addresses: IAddress[]) => {
     if (addresses?.length === 0) return [];
     else
@@ -238,12 +270,8 @@ const Order = () => {
     getAddresses();
     if (!user?.type) {
       setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
-    } else
-    if (
-      selectedDate?.toLocaleDateString() == new Date().toLocaleDateString() &&
-      selectedDate.getHours() >= 12
-    ) {
-      setSelectedDate(new Date(new Date().setDate(new Date().getDate() + 1)));
+    } else {
+      setSelectedDate(getMinDate());
     }
   }, []);
 
@@ -269,24 +297,117 @@ const Order = () => {
     }
   }, [user])
 
-  const getMinDate = () => {
-    const now = new Date(); // Текущая дата и время
-    const tomorrow = new Date();
-    tomorrow.setDate(now.getDate() + 1); // Завтрашний день
-  
-    // Если user?.type === false, возвращаем завтрашний день
-    if (user?.type === false) {
-      return tomorrow;
+  useEffect(() => {
+    setSelectedDate(getMinDate())
+    if (lastOrder?.status === "awaitingOrder" && lastOrder?.date?.time !== "") {
+      const sT = lastOrder?.date?.time[0] + lastOrder?.date?.time[1]
+      const eT = lastOrder?.date?.time[6] + lastOrder?.date?.time[7]
+      setStartTime(parseInt(sT))
+      setEndTime(parseInt(eT))
     }
-  
-    // Если user?.type === true и текущее время больше 12:00, возвращаем завтрашний день
-    if (user?.type === true && now.getHours() >= 12) {
-      return tomorrow;
+  }, [lastOrder])
+
+  const isChange = () => {
+    if (!repeat) {
+      return false
     }
-  
-    // В остальных случаях возвращаем сегодняшнюю дату
-    return now;
-  };
+
+    const selectedMonth = selectedDate?.getMonth() || 0
+
+    const fullSelectedDate = 
+      selectedDate?.getFullYear() + "-" + 
+      String(selectedMonth + 1).padStart(2, "0") + "-" + 
+      String(selectedDate?.getDate()).padStart(2, "0");
+
+    if (lastOrder?.date?.d !== fullSelectedDate) {
+      return true
+    }
+
+    if (user?.cart?.b12 !== lastOrder?.products?.b12 || user?.cart?.b19 !== lastOrder?.products?.b19) {
+      return true
+    }
+  }
+
+  const updateOrder = async () => {
+
+    let change, changeData
+
+    const selectedMonth = selectedDate?.getMonth() || 0
+
+    const fullSelectedDate = 
+      selectedDate?.getFullYear() + "-" + 
+      String(selectedMonth + 1).padStart(2, "0") + "-" + 
+      String(selectedDate?.getDate()).padStart(2, "0");
+
+    // if (lastOrder?.status === "awaitingOrder" && lastOrder?.date?.time !== "") {
+    //   const sT = lastOrder?.date?.time[0] + lastOrder?.date?.time[1]
+    //   const eT = lastOrder?.date?.time[6] + lastOrder?.date?.time[7]
+    // }
+
+    if (lastOrder?.date?.d !== fullSelectedDate) {
+      change = "date"
+      changeData = {d: fullSelectedDate, time: ""}
+    }
+
+    await useHttp
+        .post<{ success: boolean }>("/updateOrder", {orderId: lastOrder?._id, change, changeData})
+        .then(async (res) => {
+          if (res.data.success) {
+            getLastOrder()
+            dispatch(
+              setError({
+                error: false,
+                errorMessage: "Заказ успешно изменен",
+              })
+            );
+
+            router.push("/");
+          }
+        })
+        .catch((err) => {
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err?.response?.data?.message,
+            })
+          );
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+    if (user?.cart?.b12 !== lastOrder?.products?.b12 || user?.cart?.b19 !== lastOrder?.products?.b19) {
+      change = "products"
+      changeData = {b12: user?.cart?.b12, b19: user?.cart?.b19}
+    }
+
+    await useHttp
+        .post<{ success: boolean }>("/updateOrder", {orderId: lastOrder?._id, change, changeData})
+        .then(async (res) => {
+          if (res.data.success) {
+            getLastOrder()
+            dispatch(
+              setError({
+                error: false,
+                errorMessage: "Заказ успешно изменен",
+              })
+            );
+
+            router.push("/");
+          }
+        })
+        .catch((err) => {
+          dispatch(
+            setError({
+              error: true,
+              errorMessage: err?.response?.data?.message,
+            })
+          );
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+  }
 
   return (
     <View style={sharedStyles.container}>
@@ -323,7 +444,7 @@ const Order = () => {
             title="Адрес доставки"
             items={getFormattedAddresses(addresses)}
             select={selectedAddressId}
-            setSelect={setSelectedAddressId}
+            setSelect={repeat ? () => {} : setSelectedAddressId}
           />
         </View>
         <View
@@ -342,7 +463,7 @@ const Order = () => {
               { id: "mixed", text: "Смешанная" },
             ]}
             select={selectedPayment}
-            setSelect={setSelectedPayment}
+            setSelect={repeat ? () => {} : setSelectedPayment}
             // addText="Привязать карту"
           />
         </View>
@@ -358,15 +479,16 @@ const Order = () => {
             Время доставки
           </Text>
           <UITimePickerModal
-            disabled={
-              repeat == "true" &&
-              (lastOrder?.status == "awaitingOrder" ||
-                lastOrder?.status == "onTheWay")
-            }
+            disabled={lastOrder?.status === "onTheWay"}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             minDate={getMinDate()}
             userType={user?.type || false}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+            qwe={lastOrder?.status === "awaitingOrder" ? false : true}
           />
         </View>
 
@@ -387,6 +509,15 @@ const Order = () => {
               text="Оформить заказ"
               type="default"
               onPress={handleOrder}
+              isLoading={isLoading}
+            />
+          )}
+
+        {lastOrder?.status === "awaitingOrder" && isChange() && (
+            <UIButton
+              text="Сохранить изменения"
+              type="default"
+              onPress={updateOrder}
               isLoading={isLoading}
             />
           )}

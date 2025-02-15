@@ -19,7 +19,12 @@ type UITimePickerModalProps = {
   minDate: Date;
   selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
-  userType: boolean
+  userType: boolean,
+  startTime: number;
+  setStartTime: (time: number) => void;
+  endTime: number;
+  setEndTime: (time: number) => void;
+  qwe: boolean
 };
 
 const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
@@ -27,7 +32,12 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   minDate,
   selectedDate,
   setSelectedDate,
-  userType
+  userType,
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime,
+  qwe
 }) => {
   const { user } = useSelector((state: RootState) => state.user);
 
@@ -42,7 +52,7 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   };
 
   const confirmDate = () => {
-    if (step === "date" && user?.chooseTime) {
+    if (step === "date" && user?.chooseTime && qwe) {
       setStep("time");
     } else {
       toggleModal();
@@ -56,7 +66,9 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
   };
 
   const handleChangeDate = (newDate: Date) => {
-    setSelectedDate(newDate);
+    const adjustedDate = new Date(newDate);
+    adjustedDate.setHours(12, 0, 0, 0); // Устанавливаем время на 12:00 дня
+    setSelectedDate(adjustedDate);
   };
 
   const goToNextMonth = () => {
@@ -163,81 +175,89 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
     );
   };
 
-  const renderTimeOptions = (
-    start: number,
-    end: number,
-    step = 1,
-    isHour = true
-  ) => {
+  const renderTimeOptions = (start: number, end: number, step = 1) => {
     const options = [];
     for (let i = start; i <= end; i += step) {
-      const value = i < 10 ? `0${i}` : `${i}`;
-
-      const time = new Date(minDate).toLocaleTimeString();
-      const [hour, minute] = time
-        .split(":")
-        .map((item) => parseInt(item)) as number[];
-
-      const second = hour * 60 * 60 + minute * 60;
-      const halfHour = 60 * 60 + 30 * 60;
-      const workEnd = 21 * 60 * 60;
-
-      // проверка time + 1:30 >= workEnd иначе не показывать и остальные проверки
-      const isDisabled =
-        second + halfHour >= workEnd ||
-        (isHour && i < 9) || // Начало рабочего дня
-        (isHour && i >= 21) || // Конец рабочего дня
-        (!isHour && i % 10 !== 0) || // Минуты только кратные 10
-        (isHour && (i + 1) * 60 * 60 < second + halfHour) || // Не показывать часы, если меньше чем час
-        (!isHour && selectedDate
-          ? new Date(selectedDate).getHours() * 60 * 60 + i * 60 <
-            second + halfHour
-          : false); // Не показывать минуты, если меньше чем полчаса
-
-      if (!isDisabled)
-        options.push(
-          <TouchableOpacity
-            key={value}
-            onPress={() => {
-              const newDate = new Date(selectedDate || new Date());
-              if (isHour) {
-                newDate.setHours(i);
-              } else {
-                newDate.setMinutes(i);
-              }
-              setSelectedDate(newDate);
-            }}
-            style={[
-              styles.option,
-              (isHour && selectedDate
-                ? selectedDate.getHours() === i
-                : false) ||
-              (!isHour && selectedDate
-                ? selectedDate.getMinutes() === i
-                : false)
-                ? styles.selectedOption
-                : null,
-            ]}>
-            <Text
-              style={[
-                styles.optionText,
-                (isHour && selectedDate
-                  ? selectedDate.getHours() === i
-                  : false) ||
-                (!isHour && selectedDate
-                  ? selectedDate.getMinutes() === i
-                  : false)
-                  ? styles.selectedOptionText
-                  : null,
-                isDisabled ? styles.disabledText : null,
-              ]}>
-              {value}
-            </Text>
-          </TouchableOpacity>
-        );
+      options.push(i);
     }
     return options;
   };
+
+  // const renderTimeOptions = (
+  //   start: number,
+  //   end: number,
+  //   step = 1,
+  //   isHour = true
+  // ) => {
+  //   const options = [];
+  //   for (let i = start; i <= end; i += step) {
+  //     const value = i < 10 ? `0${i}` : `${i}`;
+
+  //     const time = new Date(minDate).toLocaleTimeString();
+  //     const [hour, minute] = time
+  //       .split(":")
+  //       .map((item) => parseInt(item)) as number[];
+
+  //     const second = hour * 60 * 60 + minute * 60;
+  //     const halfHour = 60 * 60 + 30 * 60;
+  //     const workEnd = 21 * 60 * 60;
+
+  //     // проверка time + 1:30 >= workEnd иначе не показывать и остальные проверки
+  //     const isDisabled =
+  //       second + halfHour >= workEnd ||
+  //       (isHour && i < 9) || // Начало рабочего дня
+  //       (isHour && i >= 21) || // Конец рабочего дня
+  //       (!isHour && i % 10 !== 0) || // Минуты только кратные 10
+  //       (isHour && (i + 1) * 60 * 60 < second + halfHour) || // Не показывать часы, если меньше чем час
+  //       (!isHour && selectedDate
+  //         ? new Date(selectedDate).getHours() * 60 * 60 + i * 60 <
+  //           second + halfHour
+  //         : false); // Не показывать минуты, если меньше чем полчаса
+
+  //     if (!isDisabled)
+  //       options.push(
+  //         <TouchableOpacity
+  //           key={value}
+  //           onPress={() => {
+  //             const newDate = new Date(selectedDate || new Date());
+  //             if (isHour) {
+  //               newDate.setHours(i);
+  //             } else {
+  //               newDate.setMinutes(i);
+  //             }
+  //             setSelectedDate(newDate);
+  //           }}
+  //           style={[
+  //             styles.option,
+  //             (isHour && selectedDate
+  //               ? selectedDate.getHours() === i
+  //               : false) ||
+  //             (!isHour && selectedDate
+  //               ? selectedDate.getMinutes() === i
+  //               : false)
+  //               ? styles.selectedOption
+  //               : null,
+  //           ]}>
+  //           <Text
+  //             style={[
+  //               styles.optionText,
+  //               (isHour && selectedDate
+  //                 ? selectedDate.getHours() === i
+  //                 : false) ||
+  //               (!isHour && selectedDate
+  //                 ? selectedDate.getMinutes() === i
+  //                 : false)
+  //                 ? styles.selectedOptionText
+  //                 : null,
+  //               isDisabled ? styles.disabledText : null,
+  //             ]}>
+  //             {value}
+  //           </Text>
+  //         </TouchableOpacity>
+  //       );
+  //   }
+  //   return options;
+  // };
 
   return (
     <View>
@@ -289,48 +309,100 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
             ) : (
               <View style={styles.timePickerContainer}>
                 <View style={styles.picker}>
-                  <Text style={styles.pickerLabel}>Часы</Text>
+                  <Text style={styles.pickerLabel}>От</Text>
                   <FlatList
-                    data={
-                      selectedDate
-                        ? renderTimeOptions(
-                            selectedDate.getDate() === minDate.getDate()
-                              ? minDate.getHours()
-                              : 0,
-                            21,
-                            1,
-                            true
-                          )
-                        : []
-                    }
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item }) => item}
-                    initialNumToRender={10}
-                    windowSize={5}
-                    style={{
-                      maxHeight: 240,
-                      height: 200,
-                      overflow: "scroll",
-                    }}
+                    style={{ maxHeight: 200, height: "auto" }}
+                    data={renderTimeOptions(9, 20, 1)}  // Передаем массив чисел
+                    keyExtractor={(item) => item.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        onPress={() => setStartTime(item)}
+                        style={[
+                          styles.option,
+                          startTime === item ? styles.selectedOption : null,
+                        ]}>
+                        <Text style={styles.optionText}>
+                          {item.toString().padStart(2, "0")}:00
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   />
                 </View>
                 <View style={styles.picker}>
-                  <Text style={styles.pickerLabel}>Минуты</Text>
+                  <Text style={styles.pickerLabel}>До</Text>
                   <FlatList
-                    key={selectedDate ? selectedDate.toTimeString() : ""}
-                    data={renderTimeOptions(0, 59, 10, false)}
+                    style={{ maxHeight: 200, height: "auto" }}
+                    data={renderTimeOptions(9, 20, 1)}  // Передаем массив чисел
+                    keyExtractor={(item) => item.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        onPress={() => setEndTime(item)}
+                        style={[
+                          styles.option,
+                          endTime === item ? styles.selectedOption : null,
+                        ]}>
+                        <Text style={styles.optionText}>
+                          {item.toString().padStart(2, "0")}:00
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  {/* <FlatList
+                    data={renderTimeOptions(
+                      startTime ? startTime + 1 : 10, // "До" минимум на 1 час позже "От"
+                      21,
+                      endTime,
+                      setEndTime
+                    )}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => item}
-                    initialNumToRender={10}
-                    windowSize={5}
-                    style={{
-                      maxHeight: 240,
-                      height: 200,
-                      overflow: "scroll",
-                    }}
-                  />
+                  /> */}
                 </View>
               </View>
+              // <View style={styles.timePickerContainer}>
+              //   <View style={styles.picker}>
+              //     <Text style={styles.pickerLabel}>Часы</Text>
+              //     <FlatList
+              //       data={
+              //         selectedDate
+              //           ? renderTimeOptions(
+              //               selectedDate.getDate() === minDate.getDate()
+              //                 ? minDate.getHours()
+              //                 : 0,
+              //               21,
+              //               1,
+              //               true
+              //             )
+              //           : []
+              //       }
+              //       keyExtractor={(item, index) => index.toString()}
+              //       renderItem={({ item }) => item}
+              //       initialNumToRender={10}
+              //       windowSize={5}
+              //       style={{
+              //         maxHeight: 240,
+              //         height: 200,
+              //         overflow: "scroll",
+              //       }}
+              //     />
+              //   </View>
+              //   <View style={styles.picker}>
+              //     <Text style={styles.pickerLabel}>Минуты</Text>
+              //     <FlatList
+              //       key={selectedDate ? selectedDate.toTimeString() : ""}
+              //       data={renderTimeOptions(0, 59, 10, false)}
+              //       keyExtractor={(item, index) => index.toString()}
+              //       renderItem={({ item }) => item}
+              //       initialNumToRender={10}
+              //       windowSize={5}
+              //       style={{
+              //         maxHeight: 240,
+              //         height: 200,
+              //         overflow: "scroll",
+              //       }}
+              //     />
+              //   </View>
+              // </View>
             )}
 
             <View style={styles.buttonContainer}>
@@ -360,13 +432,15 @@ const UITimePickerModal: React.FC<UITimePickerModalProps> = ({
             month: "long",
           })} `}
           {user?.chooseTime &&
+  `с ${startTime?.toString().padStart(2, "0")}:00 до ${endTime?.toString().padStart(2, "0")}:00`}
+          {/* {user?.chooseTime &&
             `в ${selectedDate
               .getHours()
               .toString()
               .padStart(2, "0")}:${selectedDate
               .getMinutes()
               .toString()
-              .padStart(2, "0")}`}
+              .padStart(2, "0")}`} */}
         </Text>
       )}
     </View>

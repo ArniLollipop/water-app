@@ -4,9 +4,6 @@ import {
   TouchableOpacity,
   View,
   Animated,
-  LayoutAnimation,
-  Platform,
-  UIManager,
 } from "react-native";
 import UIIcon from "./Icon";
 import { useState, useEffect } from "react";
@@ -21,8 +18,7 @@ const UIRadio = (props: {
   setSelect?: (value: string) => void;
 }) => {
   const [isAllVisible, setAllVisible] = useState(false);
-
-  const [fadeAnim, setFadeAnim] = useState(new Animated.Value(0));
+  const [fadeAnim, setFadeAnim] = useState(new Animated.Value(1));
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -53,77 +49,14 @@ const UIRadio = (props: {
         </Text>
       )}
       <View style={{ width: "100%", flexDirection: "column", gap: 15 }}>
-        {props.select && (
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [
-                {
-                  translateY: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-20, 0],
-                  }),
-                },
-                {
-                  scale: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.9, 1],
-                  }),
-                },
-              ],
-            }}>
-            <TouchableOpacity
-              onPress={() =>
-                props.select && props.setSelect && props.setSelect(props.select)
-              }
-              key={props.select}
-              style={{
-                backgroundColor: Colors.background,
-                borderRadius: 10,
-                padding: 10,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}>
-              <Text style={{ fontSize: 14, color: Colors.text }}>
-                {props.items?.find((item) => item.id == props.select)?.text ||
-                  ""}
-              </Text>
-              {!props.withoutDot && (
-                <View
-                  style={{
-                    width: 20,
-                    height: 20,
-                    padding: 5,
-                    borderWidth: 1,
-                    borderRadius: 100,
-                    borderColor: Colors.tint,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                  <View
-                    style={{
-                      width: 13,
-                      height: 13,
-                      backgroundColor: Colors.tint,
-                      borderRadius: 100,
-                    }}
-                  />
-                </View>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
-        )}
         {props.items &&
           props.items.length > 0 &&
-          props?.items
-            ?.filter((item) => item.id != props.select)
-            ?.filter((item, index) => isAllVisible || index < 2)
+          props.items
+            .filter((item, index) => isAllVisible || index < 2)
             .map((item) => (
               <TouchableOpacity
                 onPress={() => {
                   setFadeAnim(new Animated.Value(0));
-
                   item.id && props.setSelect && props.setSelect(item.id);
                 }}
                 key={item.id}
@@ -138,6 +71,28 @@ const UIRadio = (props: {
                 <Text style={{ fontSize: 14, color: Colors.text }}>
                   {item.text}
                 </Text>
+                {props.select === item.id && !props.withoutDot && (
+                  <View
+                    style={{
+                      width: 20,
+                      height: 20,
+                      padding: 5,
+                      borderWidth: 1,
+                      borderRadius: 100,
+                      borderColor: Colors.tint,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                    <View
+                      style={{
+                        width: 13,
+                        height: 13,
+                        backgroundColor: Colors.tint,
+                        borderRadius: 100,
+                      }}
+                    />
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
 
@@ -165,8 +120,7 @@ const UIRadio = (props: {
         )}
 
         {props.items &&
-          props.items?.filter((item) => item.id != props.select)?.length >
-            2 && (
+          props.items.length > 2 && (
             <TouchableOpacity
               onPress={() => setAllVisible(!isAllVisible)}
               style={{
