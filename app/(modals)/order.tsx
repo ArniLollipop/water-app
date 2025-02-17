@@ -67,6 +67,10 @@ const Order = () => {
     const tomorrow = new Date();
     tomorrow.setDate(now.getDate() + 1); // Завтрашний день
 
+    if (now.getDay() === 0) {
+      return tomorrow
+    }
+
     if (tomorrow.getDay() === 0) {
       tomorrow.setDate(tomorrow.getDate() + 1);
     }

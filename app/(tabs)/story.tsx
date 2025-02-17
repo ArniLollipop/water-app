@@ -16,7 +16,7 @@ export default function Story() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false); // Флаг для предотвращения дублирования запросов
 
-  const getHistory = useCallback(async () => {
+  const getHistory = useCallback(async (page: number) => {
     if (isLoading) return;
 
     setIsLoading(true);
@@ -31,25 +31,27 @@ export default function Story() {
         
         if (newOrders.length === 0) {
           setHasMore(false)
+        } else {
+          if (page === 1) {
+              setOrders([...newOrders])
+          } else {
+            setOrders((prevOrders) => [...prevOrders, ...newOrders]);
+          }
         }
-        setOrders((prevOrders) => [...prevOrders, ...newOrders]);
       })
       .catch((error) => console.error(error))
       .finally(() => setIsLoading(false));
   }, [page, user?._id, isLoading, hasMore])
 
   useEffect(() => {
-    if (pathname.includes("story") && orders.length > 0) {
-      setPage(1);
+    if (pathname.includes("story")) {
+      setPage(1); // Обнуляем page перед очисткой orders
       setOrders([]);
       setHasMore(true);
       setIsLoading(false);
+      getHistory(1)
     }
   }, [pathname]);
-
-  useEffect(() => {
-      getHistory();
-  }, [page]);
 
   const renderItem = ({ item }: { item: IOrder }) => (
     <View style={storyStyles.item}>
@@ -115,6 +117,7 @@ export default function Story() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
         onEndReached={() => {
           if (!isLoading && hasMore) {
+            getHistory(page + 1)
             setPage((prevPage) => prevPage + 1);
           }
         }}

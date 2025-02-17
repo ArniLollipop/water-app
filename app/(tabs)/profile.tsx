@@ -12,6 +12,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import useHttp from "@/utils/axios";
@@ -175,11 +176,19 @@ export default function Profile() {
               width: "100%",
             }}>
             <View style={profileStyles.avatar}>
-              <Text style={profileStyles.avatarText}>{formatName()}</Text>
+              {/* <Text style={profileStyles.avatarText}>{formatName()}</Text> */}
+              <Image
+                  source={require("../../assets/images/512.png")}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    objectFit: "contain",
+                  }}
+                />
             </View>
-            <Text style={profileStyles.name}>{fullName}</Text>
+            {/* <Text style={profileStyles.name}>{fullName}</Text> */}
             <View style={{ gap: 10, width: "100%", marginVertical: 15 }}>
-              <UIInput
+              {/* <UIInput
                 editable={editable == "fullName"}
                 value={fullName}
                 onChangeText={(text) => setFullName(text)}
@@ -216,7 +225,7 @@ export default function Profile() {
                     <UIIcon name="edit" />
                   )
                 }
-              />
+              /> */}
               <MaskedUIInput
                 editable={editable === "phone"}
                 mask="+7 (999) 999-99-99"
@@ -300,8 +309,8 @@ export default function Profile() {
 
 const profileStyles = StyleSheet.create({
   avatar: {
-    width: 100,
-    height: 100,
+    width: 200,
+    height: 200,
     borderRadius: 50,
     backgroundColor: Colors.tint,
     display: "flex",
