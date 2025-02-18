@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { Linking, Platform } from "react-native";
+import { Linking, Platform, Image } from "react-native";
 
 export default function Support() {
   const { user } = useSelector((state: RootState) => state.user);
@@ -53,7 +53,18 @@ export default function Support() {
   return (
     <View style={sharedStyles.container}>
       <ScrollView>
-      {lastOrder && <HomeRecent lastOrder={lastOrder} />}
+      {/* {lastOrder && <HomeRecent lastOrder={lastOrder} />} */}
+      {/* <View style={{
+          alignItems: "center", // Центрирует по горизонтали
+      }}>
+          <Image 
+              source={require("../../assets/images/logo.png")}
+              style={{
+                  width: "50%",
+                  resizeMode: "contain"
+              }}
+          />
+      </View> */}
       <View style={supportStyles.list}>
         <Text style={supportStyles.listHead}>Поддержка клиентов:</Text>
         <View style={supportStyles.listContent}>
@@ -75,15 +86,14 @@ export default function Support() {
         <Text style={supportStyles.text}>
         «Тибетская» - один из первых брендов воды в Казахстане, который завоевал сердца многих потребителей благодаря своему безукоризненному качеству и уникальности. История этой воды начинается с 1996 года, и за это время она зарекомендовала себя, как одна из самых уникальных и качественных водных брендов на рынке.
         </Text>
-      </View>
-      <View style={supportStyles.subtitle}>
-        <Text style={supportStyles.listHead}>Наш адрес:</Text>
-      </View>
-      <View>
-        <Text style={supportStyles.text}>
-        г. Алматы, ул. Шевченко, д. 7/75, оф. 59а
+        <Text style={supportStyles.text2}>
+        Правообладателем торговой марки «Тибетская» является ТОО "Partner's Mountain Water Co", которое продолжает традиции качества и надежности, обеспечивая потребителей чистой и полезной водой.
+        </Text>
+        <Text style={supportStyles.text2}>
+          г. Алматы, ул. Шевченко, д. 7/75, оф. 59а
         </Text>
       </View>
+      <View style={{height: 20}}></View>
       </ScrollView>
     </View>
   );
@@ -93,7 +103,7 @@ const supportStyles = StyleSheet.create({
   list: {
     width: "100%",
     height: "auto",
-    marginTop: 20,
+    marginTop: 5,
   },
   listHead: {
     fontSize: 20,
@@ -106,7 +116,7 @@ const supportStyles = StyleSheet.create({
     justifyContent: "space-between",
   },
   phone: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "400",
     color: Colors.blue,
     textDecorationLine: "underline",
@@ -115,9 +125,13 @@ const supportStyles = StyleSheet.create({
     marginTop: 15
   },
   text: {
-    fontSize: 18,
-    fontWeight: "500",
+    fontSize: 16,
     color: "#000",
-    marginTop: 5
-  }
+    marginTop: 10
+  },
+  text2: {
+    fontSize: 16,
+    color: "#000",
+    marginTop: 20
+  },
 });
