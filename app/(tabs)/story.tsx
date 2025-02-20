@@ -64,7 +64,10 @@ export default function Story() {
               fontWeight: "400",
             }}
           >
-            {item.createdAt.split("T")[0].split("-").reverse().join("/")}
+            {(item?.status === "awaitingOrder" || item?.status === "onTheWay") ? 
+              item.createdAt.split("T")[0].split("-").reverse().join("/") :
+              item.date.d.split("T")[0].split("-").reverse().join("/")
+            }
           </Text>
           <Text
             style={{
